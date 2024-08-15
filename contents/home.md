@@ -1,17 +1,20 @@
 
 
-[![senli1073](https://img.shields.io/badge/senli1073-github-blue?logo=github)](https://github.com/senli1073)
+[![Jalensuggs](https://img.shields.io/badge/Jalensuggs-github-blue?logo=github)](https://github.com/Jalensuggs)
 
-He is currently pursuing a Master's Degree in Computer Science, at School of Computer Science and Technology, China University of Mining and Technology, China.
+He is currently pursuing a Master's degree in Artificial Intelligence at the School of Information Technology, University of New South Wales, Australia.
 
 #### Email
-sli[at]cumt.edu.cn
+jalensuggs77@gmail.com
+hml202109@163.com
+2394486092@qq.com
+
 
 
 #### Education
-M.E., Computer Science and Technology, China University of Mining and Technology, 2025 (expected).\
-B.E., Data Science and Big Data Technology, China University of Mining and Technology, 2022.
+M.E., Software Engineering , Hainan Normal University, 2021-2025 (expected)
+
 
 #### Research Interests
-Deep Learning, Artificial Intelligence Seismology, Mine Microseismic.
+Vue, JavaWeb, SpringBoot, Deep Learning, Artificial Intelligence .
 
