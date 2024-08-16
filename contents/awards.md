@@ -1,4 +1,4 @@
 - My own Transcripts
-- English IELTS 6.0, 2023.
-- Huawei Certification HCIP, 2024
-- Red Hat Certified System Administrator (RHCSA)
+- English IELTS 6.0,  2023.
+- Huawei Certification HCIP,  2024
+- Red Hat Certified System Administrator (RHCSA)，2024

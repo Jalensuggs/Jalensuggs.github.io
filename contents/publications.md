@@ -1,12 +1,7 @@
-- <strong>S. Li</strong>, X. Yang*, A. Cao*, K. Fan, Y. Liu, C. Wang, and Q.Niu (2024). Label Noise-Robust Learning for Microseismic Arrival Time Picking. <strong>In Revision.</strong> [[Code]](https://github.com/senli1073/LNRL)
+## Simple intelligent management
 
-- X. Yang, <strong>S. Li</strong>, A. Cao*, C. Wang*, Y. Liu, X. Bai, and Q. Niu (2023). Deep Transfer Learning for P-wave Arrival Identification and Automatic Seismic Source Location in Underground Mines. <strong>In Revision.</strong>
+##### Position：Backend development engineer
 
-- <strong>S. Li</strong>, X. Yang*, A. Cao*, C. Wang, Y. Liu, Y. Liu, and Q. Niu (2024). SeisT: A Foundational Deep-Learning Model for Earthquake Monitoring Tasks. <strong>IEEE Transactions on Geoscience and Remote Sensing</strong>. [[Paper]](https://doi.org/10.1109/TGRS.2024.3371503) [[Code]](https://github.com/senli1073/SeisT)
+`<strong>Date:2023-08</strong>`
 
-- A. Cao, X. Yang, C. Wang*, <strong>S. Li</strong>, Y. Liu, L. Dou, and Q. Niu (2023). High-Precision Phase Picking and Automatic Source Locating Method for Seismicity in Mines Based on Deep Transfer Learning. <strong>Journal of China Coal Society</strong>. [[Paper]](https://doi.org/10.13225/j.cnki.jccs.2023.0095)
-
-- A. Cao, Y. Liu, X. Yang*, <strong>S. Li</strong>, C. Wang, X. Bai, and Y. Liu (2022). Physical Index and Data Fusion-Driven Method for Coal Burst Prediction in Time Sequence. <strong>Journal of China Coal Society</strong>. [[Paper]](https://doi.org/10.13225/j.cnki.jccs.2022.0680)
-
-- X. Yang, X. Yu, C. Zhang, <strong>S. Li</strong>, and Q. Niu (2021). MineGPS: Battery-Free Localization Base Station for Coal Mine Environment. <strong>IEEE Communications Letters</strong>. [[Paper]](https://doi.org/10.1109/LCOMM.2021.3081593)
-
+During the development of this project, I worked with team members on the design and arrangement of the framework. During the implementation process, I used reflection and underlying multi-threaded Thread technology. For the web page rendering part, I used CSS, JavaScript and HTML5, and used the Vue framework for rendering. Taking into account Vue's non-polymorphism, we also designed the Vue 2.0 version.  In order to ensure the maintainability of the backend, I adopted the MVC three-tier architecture. In addition, in order to implement persistence operations, I introduced the MyBatis framework. By using MyBatis, I can add, delete, modify, and query data, further improving the functionality of the project.
