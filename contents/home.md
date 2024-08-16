@@ -13,7 +13,7 @@ jalensuggs77@gmail.com      ||       2394486092@qq.com
 
 #### Education
 
-M.E., Software Engineering , Hainan Normal University, 2021-2025 (expected)
+B.S., Software Engineering , Hainan Normal University, 2021-2025 (expected)
 
 #### Research Interests
 
