@@ -1,11 +1,11 @@
 [![Jalensuggs](https://img.shields.io/badge/Jalensuggs-github-blue?logo=github)](https://github.com/Jalensuggs)
 
-One of my favorite quotes...Everyone has a story, and I like to believe a good story is just whether you can let them tell it, or whether they are willing to tell it...\
-I like programming! I have a strong interest in web3.0!🤑 You can do anything as long as you believe it!\
+One of my favorite quotes...Everyone has a story, and I like to believe a good story is just whether you can let them tell it, or whether they are willing to tell it...
+I like programming! I have a strong interest in web3.0!🤑 You can do anything as long as you believe it!
 
-Also I'm planning to pursure a Master's degree in Artificial Intelligence at the School of Information Technology, University of New South Wales, Australia.\
+Also I'm planning to pursure a Master's degree in Artificial Intelligence at the School of Information Technology, University of New South Wales, Australia.
 
-stay tuned🥰🥰🥰
+Stay tuned🥰🥰🥰
 
 #### Email
 
