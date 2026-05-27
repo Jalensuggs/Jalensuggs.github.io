@@ -157,15 +157,22 @@ export default function MainContent() {
               <div
                 key={track.id}
                 className={`track-row ${isActive ? 'active' : ''}`}
-                onClick={() => dispatch({ type: 'PLAY_TRACK', id: track.id })}
+                onClick={() => isActive
+                  ? dispatch({ type: 'TOGGLE_PLAY' })
+                  : dispatch({ type: 'PLAY_TRACK', id: track.id })
+                }
               >
-                {/* # / pause icon / play icon */}
+                {/* # / 静态图标 / hover图标 */}
                 <span className="col-num">
-                  {isActive && state.isPlaying ? (
-                    <span className="track-playing-icon"><PauseIcon /></span>
+                  {isActive ? (
+                    /* 当前曲目：显示播放/暂停静态图标 */
+                    <span className="track-playing-icon">
+                      {state.isPlaying ? <PauseIcon /> : <PlayIcon />}
+                    </span>
                   ) : (
                     <span className="track-num">{idx + 1}</span>
                   )}
+                  {/* hover 时覆盖显示的图标 */}
                   <span className="track-play-icon">
                     {isActive && state.isPlaying ? <PauseIcon /> : <PlayIcon />}
                   </span>

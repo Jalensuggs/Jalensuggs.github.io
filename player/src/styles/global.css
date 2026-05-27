@@ -461,17 +461,19 @@ input { border: none; outline: none; font: inherit; }
   transition: opacity var(--transition);
   color: var(--text);
 }
-/* 正在播放时的静态暂停图标（绿色，始终可见） */
+/* 当前曲目的静态图标（绿色，始终可见；hover 时隐藏让 track-play-icon 接管） */
 .track-playing-icon {
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--green);
+  transition: opacity var(--transition);
 }
 .track-row:hover .track-num { opacity: 0; }
 .track-row:hover .track-play-icon { opacity: 1; }
-/* active 行：playing-icon 隐藏，hover 才显示 track-play-icon */
+/* active 行非 hover：显示静态图标 */
 .track-row.active .track-playing-icon { opacity: 1; }
+/* active 行 hover：静态图标隐藏，show track-play-icon */
 .track-row.active:hover .track-playing-icon { opacity: 0; }
 .track-row.active:hover .track-play-icon { opacity: 1; color: var(--green); }
 
