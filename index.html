@@ -303,6 +303,18 @@ footer span{color:var(--accent)}
 }
 .artist-card[data-song]:hover .artist-play-pill{background:var(--accent);color:#fff;transform:scale(1.05)}
 .artist-card.now-playing{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,115,22,.15)}
+.see-more-btn{
+  display:inline-block;padding:10px 28px;border-radius:24px;
+  font-size:.85rem;font-weight:700;text-decoration:none;
+  color:var(--accent);border:1.5px solid rgba(249,115,22,.4);
+  background:rgba(249,115,22,.07);
+  transition:background .2s,transform .15s,box-shadow .2s;
+}
+.see-more-btn:hover{
+  background:var(--accent);color:#fff;
+  box-shadow:0 4px 14px rgba(249,115,22,.35);
+  transform:translateY(-1px);
+}
 
 /* MUSIC PLAYER */
 .music-player{
@@ -749,6 +761,9 @@ body.loaded .scroll-hint{opacity:1}
         <div class="artist-desc">Took down the biggest rapper alive with a PDF. Not like us, not like us.</div>
         <div class="artist-play-pill">▶ Play</div>
       </div>
+    </div>
+    <div style="text-align:center;margin-top:24px;">
+      <a href="player/dist/index.html" class="see-more-btn">See more →</a>
     </div>
   </div>
 </div>
