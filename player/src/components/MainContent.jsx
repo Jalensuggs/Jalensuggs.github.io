@@ -159,10 +159,10 @@ export default function MainContent() {
                 className={`track-row ${isActive ? 'active' : ''}`}
                 onClick={() => dispatch({ type: 'PLAY_TRACK', id: track.id })}
               >
-                {/* # / playing bars */}
+                {/* # / pause icon / play icon */}
                 <span className="col-num">
                   {isActive && state.isPlaying ? (
-                    <span className="playing-bars"><span/><span/><span/></span>
+                    <span className="track-playing-icon"><PauseIcon /></span>
                   ) : (
                     <span className="track-num">{idx + 1}</span>
                   )}

@@ -461,10 +461,19 @@ input { border: none; outline: none; font: inherit; }
   transition: opacity var(--transition);
   color: var(--text);
 }
+/* 正在播放时的静态暂停图标（绿色，始终可见） */
+.track-playing-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+}
 .track-row:hover .track-num { opacity: 0; }
 .track-row:hover .track-play-icon { opacity: 1; }
-.track-row.active .track-num { opacity: 0; }
-.track-row.active .track-play-icon { opacity: 1; color: var(--green); }
+/* active 行：playing-icon 隐藏，hover 才显示 track-play-icon */
+.track-row.active .track-playing-icon { opacity: 1; }
+.track-row.active:hover .track-playing-icon { opacity: 0; }
+.track-row.active:hover .track-play-icon { opacity: 1; color: var(--green); }
 
 /* Animated playing bars */
 .playing-bars {
