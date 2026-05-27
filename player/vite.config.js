@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// dev → base '/'（图片/音乐路径正常）
-// build → base '/BLog/player/'（GitHub Pages 部署路径）
+// dev → base '/'
+// build → base './'（相对路径，直接 file:// 打开也能用）
 export default defineConfig(({ command }) => ({
   plugins: [react()],
-  base: command === 'build' ? '/BLog/player/' : '/',
+  base: command === 'build' ? './' : '/',
 }))
