@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Myles | Software Engineer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f5f5f7;
+  --text:#1a1a2e;
+  --muted:#888;
+  --accent:#f97316;
+  --accent2:#fb923c;
+  --card:#fff;
+  --name-color:#f97316;
+  --circle:560px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;overflow-x:hidden}
+
+/* NAV */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 40px;height:56px;
+  background:rgba(245,245,247,0.85);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(0,0,0,.06);
+}
+.nav-logo{font-size:1.05rem;font-weight:800;color:var(--text);text-decoration:none}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{color:#555;text-decoration:none;font-size:.88rem;transition:color .2s}
+.nav-links a:hover{color:var(--accent)}
+.nav-social{display:flex;gap:18px;align-items:center}
+.nav-social a{color:#333;text-decoration:none;transition:color .2s;display:flex;align-items:center}
+.nav-social a:hover{color:var(--accent)}
+.nav-social svg{width:20px;height:20px;fill:currentColor}
+
+/* HERO */
+#home{
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  padding-top:56px;
+  position:relative;overflow:hidden;
+  background:var(--bg);
+}
+#home::before{
+  content:'';position:absolute;inset:0;z-index:1;
+  background-image:radial-gradient(circle,rgba(249,115,22,.08) 1px,transparent 1px);
+  background-size:28px 28px;
+  pointer-events:none;
+}
+
+/* Floating background orbs */
+.bg-orb{
+  position:absolute;border-radius:50%;pointer-events:none;
+  filter:blur(90px);z-index:0;
+  animation:orbDrift var(--od,10s) ease-in-out infinite alternate;
+}
+@keyframes orbDrift{
+  0%  {opacity:var(--oa,.4);transform:translate(0,0) scale(1);}
+  50% {opacity:calc(var(--oa,.4) + .1);transform:translate(var(--ox,30px),calc(var(--oy,20px) * .5)) scale(1.08);}
+  100%{opacity:var(--oa,.4);transform:translate(var(--ox,30px),var(--oy,20px)) scale(1.15);}
+}
+
+/* Name cycling — cinematic rush */
+.card-name{display:inline-block;transform-origin:center center;will-change:transform,opacity,filter;}
+@keyframes nameRushOut{
+  0%  {transform:scale(1);    opacity:1;filter:blur(0px);   letter-spacing:-.01em;}
+  40% {opacity:.7;}
+  100%{transform:scale(3.6);  opacity:0;filter:blur(8px);   letter-spacing:.12em;}
+}
+@keyframes nameRushIn{
+  0%  {transform:scale(0.45); opacity:0;filter:blur(6px);}
+  100%{transform:scale(1);    opacity:1;filter:blur(0px);}
+}
+.card-name.rush-out{animation:nameRushOut .55s cubic-bezier(.4,0,.85,.4) forwards}
+.card-name.rush-in {animation:nameRushIn  .48s cubic-bezier(.05,.8,.2,1) forwards}
+
+/* Stage z-index above fire canvas */
+.stage{position:relative;z-index:3}
+
+/* STAGE */
+.stage{
+  width:var(--circle);
+  height:var(--circle);
+}
+.stage-ring{
+  position:absolute;inset:0;border-radius:50%;
+  border:1.5px dashed rgba(249,115,22,.3);
+}
+
+/* Fire canvas */
+#fireCanvas{
+  position:absolute;inset:0;z-index:1;
+  pointer-events:none;
+}
+
+/* CENTER CARD */
+.hero-card{
+  position:absolute;
+  top:50%;left:50%;
+  width:390px;
+  background:var(--card);
+  border-radius:22px;
+  padding:38px 40px 42px;
+  box-shadow:0 8px 48px rgba(0,0,0,.1);
+  text-align:center;
+  transform-style:preserve-3d;
+  will-change:transform;
+  z-index:10;
+}
+.card-greeting{font-size:.78rem;color:var(--muted);margin-bottom:6px;text-align:left}
+.card-name{
+  font-size:2.4rem;font-weight:900;font-style:italic;
+  color:var(--name-color);letter-spacing:-.01em;
+  margin-bottom:16px;line-height:1.1;
+}
+.card-divider{height:1px;background:rgba(0,0,0,.1);margin-bottom:16px}
+.card-iam{font-size:.78rem;color:var(--muted);margin-bottom:12px;text-align:left}
+.card-roles{list-style:none;display:flex;flex-direction:column;gap:6px}
+.card-roles li a{
+  display:block;text-align:right;
+  font-size:.88rem;color:#333;text-decoration:none;
+  transition:color .2s,transform .2s;transform-origin:right;
+}
+.card-roles li a:hover{color:var(--accent);transform:translateX(-4px)}
+
+/* FLOATERS */
+.floater{
+  position:absolute;top:50%;left:50%;
+  width:0;height:0;
+  animation:floatOrbit var(--dur,10s) linear infinite;
+  animation-delay:var(--del,0s);
+}
+.floater-inner{
+  animation:floatCounter var(--dur,10s) linear infinite;
+  animation-delay:var(--del,0s);
+  transform:translate(calc(var(--r,260px) - 50%),-50%);
+}
+@keyframes floatOrbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes floatCounter{from{transform:translate(calc(var(--r,260px) - 50%),-50%) rotate(0deg)}to{transform:translate(calc(var(--r,260px) - 50%),-50%) rotate(-360deg)}}
+
+.avatar-circle{
+  width:140px;height:140px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:3.2rem;
+  box-shadow:0 4px 28px rgba(249,115,22,.4);
+  overflow:hidden;
+}
+.icon-bubble{
+  width:58px;height:58px;border-radius:50%;
+  background:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:1.6rem;
+  box-shadow:0 4px 18px rgba(0,0,0,.12);
+  border:2px solid rgba(249,115,22,.15);
+}
+.icon-bubble-md{
+  width:44px;height:44px;border-radius:50%;
+  background:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;
+  box-shadow:0 3px 14px rgba(0,0,0,.1);
+  border:2px solid rgba(249,115,22,.1);
+}
+
+/* SECTIONS */
+section:not(#home){padding:80px 8%}
+.s-label{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
+.s-title{font-size:clamp(1.6rem,3vw,2.1rem);font-weight:800;margin-bottom:36px;color:var(--text)}
+.s-title span{color:var(--accent)}
+.divider{width:40px;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;margin-bottom:24px}
+
+/* ABOUT */
+#about{background:#fff}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:start}
+.about-p{color:#555;line-height:1.8;font-size:.9rem;margin-bottom:14px}
+.about-p strong{color:var(--text)}
+.about-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.tag{padding:5px 13px;border-radius:20px;font-size:.75rem;border:1px solid #ddd;color:#666;background:var(--bg)}
+.stats-col{display:flex;flex-direction:column;gap:14px}
+.stat-card{background:var(--bg);border:1px solid #e8e8f0;border-radius:12px;padding:18px 20px;display:flex;align-items:center;gap:14px;transition:border-color .2s}
+.stat-card:hover{border-color:var(--accent)}
+.stat-icon{font-size:1.5rem}
+.stat-val{font-size:1.3rem;font-weight:800;color:var(--text)}
+.stat-desc{font-size:.76rem;color:var(--muted)}
+
+/* TECH */
+#tech{background:var(--bg)}
+.skills-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.skill-item{display:flex;flex-direction:column;gap:7px}
+.skill-hd{display:flex;justify-content:space-between;font-size:.84rem}
+.skill-nm{color:var(--text);font-weight:600}
+.skill-pc{color:var(--muted)}
+.skill-bar{height:5px;background:#e0e0e8;border-radius:3px;overflow:hidden}
+.skill-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width 1.3s cubic-bezier(.4,0,.2,1)}
+
+/* PROJECTS */
+#projects{background:#fff}
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.proj-card{background:var(--bg);border:1px solid #e8e8f0;border-radius:14px;padding:22px;transition:border-color .2s,transform .2s;position:relative;overflow:hidden}
+.proj-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.proj-card:hover{border-color:var(--accent);transform:translateY(-3px)}
+.proj-card:hover::after{transform:scaleX(1)}
+.proj-ico{font-size:1.8rem;margin-bottom:12px}
+.proj-name{font-size:.95rem;font-weight:700;margin-bottom:8px;color:var(--text)}
+.proj-desc{font-size:.82rem;color:#666;line-height:1.6;margin-bottom:14px}
+.proj-tech{display:flex;flex-wrap:wrap;gap:5px}
+.tbadge{padding:2px 9px;border-radius:10px;font-size:.7rem;font-weight:600;background:rgba(249,115,22,.08);color:var(--accent);border:1px solid rgba(249,115,22,.18)}
+
+/* INTERESTS */
+#interests{background:var(--bg)}
+.int-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.int-card{background:#fff;border:1px solid #e8e8f0;border-radius:14px;padding:26px 20px;text-align:center;transition:border-color .2s,transform .2s}
+.int-card:hover{border-color:var(--accent);transform:translateY(-3px)}
+.int-ico{font-size:2.2rem;margin-bottom:12px}
+.int-title{font-size:.95rem;font-weight:700;margin-bottom:8px;color:var(--text)}
+.int-desc{font-size:.8rem;color:#666;line-height:1.65}
+.int-desc strong{color:var(--accent)}
+.logo-row{display:flex;gap:10px;justify-content:center;align-items:center;margin-bottom:14px;min-height:48px}
+.logo-row img{width:40px;height:40px;border-radius:10px;object-fit:contain;background:#f5f5f7;padding:5px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.logo-single{display:flex;justify-content:center;margin-bottom:14px}
+
+/* MUSIC MODAL */
+.music-modal-overlay{
+  display:none;position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.music-modal-overlay.open{display:flex}
+.music-modal{
+  background:#fff;border-radius:22px;
+  width:100%;max-width:560px;
+  padding:36px 32px 32px;
+  box-shadow:0 24px 80px rgba(0,0,0,.22);
+  position:relative;
+  animation:modalIn .3s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.88) translateY(24px)}to{opacity:1;transform:none}}
+.music-modal-close{
+  position:absolute;top:16px;right:18px;
+  background:none;border:none;font-size:1.4rem;
+  cursor:pointer;color:var(--muted);line-height:1;
+  transition:color .2s;
+}
+.music-modal-close:hover{color:var(--text)}
+.music-modal-header{text-align:center;margin-bottom:28px}
+.music-modal-header .ico{font-size:2.4rem;margin-bottom:8px}
+.music-modal-header h3{font-size:1.25rem;font-weight:800;color:var(--text)}
+.music-modal-header p{font-size:.8rem;color:var(--muted);margin-top:4px}
+.artist-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.artist-card{
+  background:var(--bg);border:1px solid #e8e8f0;
+  border-radius:14px;padding:18px 16px;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  text-align:center;
+  transition:border-color .2s,transform .2s;
+}
+.artist-card:hover{border-color:var(--accent);transform:translateY(-3px)}
+.artist-avatar{
+  width:80px;height:80px;border-radius:50%;
+  object-fit:cover;object-position:top center;
+  box-shadow:0 4px 20px rgba(249,115,22,.35);
+  border:3px solid rgba(249,115,22,.3);
+  background:var(--bg);
+}
+.artist-name{font-size:.9rem;font-weight:800;color:var(--text)}
+.artist-tag{padding:2px 9px;border-radius:10px;font-size:.68rem;font-weight:600;background:rgba(249,115,22,.08);color:var(--accent);border:1px solid rgba(249,115,22,.2)}
+.artist-desc{font-size:.74rem;color:#777;line-height:1.5}
+
+/* BLOG */
+#blog{background:#fff}
+.blog-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.blog-card{background:var(--bg);border:1px solid #e8e8f0;border-radius:14px;padding:22px;transition:border-color .2s,transform .2s;cursor:pointer}
+.blog-card:hover{border-color:var(--accent);transform:translateY(-3px)}
+.blog-date{font-size:.72rem;color:var(--muted);margin-bottom:8px}
+.blog-title{font-size:.95rem;font-weight:700;margin-bottom:8px;line-height:1.4;color:var(--text)}
+.blog-excerpt{font-size:.8rem;color:#666;line-height:1.65;margin-bottom:14px}
+.blog-tag{padding:2px 9px;border-radius:10px;font-size:.7rem;font-weight:600;background:rgba(249,115,22,.08);color:var(--accent);border:1px solid rgba(249,115,22,.2)}
+.blog-read{font-size:.78rem;color:var(--accent);font-weight:700;margin-top:12px;display:block}
+
+/* CONTACT */
+#contact{background:var(--bg);text-align:center}
+.social-links{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:28px}
+.s-btn{display:flex;align-items:center;gap:9px;padding:11px 20px;border-radius:10px;border:1px solid #ddd;background:#fff;color:var(--text);text-decoration:none;font-size:.85rem;font-weight:500;transition:border-color .2s,transform .2s}
+.s-btn:hover{border-color:var(--accent);transform:translateY(-2px)}
+
+footer{text-align:center;padding:26px;border-top:1px solid #eee;color:var(--muted);font-size:.78rem}
+footer span{color:var(--accent)}
+
+/* Artist play pill */
+.artist-card[data-song]{cursor:pointer}
+.artist-play-pill{
+  margin-top:8px;padding:4px 14px;border-radius:20px;
+  font-size:.72rem;font-weight:700;
+  background:rgba(249,115,22,.1);color:var(--accent);
+  border:1px solid rgba(249,115,22,.25);
+  transition:background .2s,transform .15s;
+}
+.artist-card[data-song]:hover .artist-play-pill{background:var(--accent);color:#fff;transform:scale(1.05)}
+.artist-card.now-playing{border-color:var(--accent);box-shadow:0 0 0 3px rgba(249,115,22,.15)}
+
+/* MUSIC PLAYER */
+.music-player{
+  position:fixed;bottom:0;left:0;right:0;z-index:400;
+  background:rgba(12,12,22,.96);backdrop-filter:blur(20px);
+  border-top:1px solid rgba(249,115,22,.2);
+  padding:10px 32px;height:68px;
+  display:flex;align-items:center;gap:20px;
+  transform:translateY(100%);
+  transition:transform .4s cubic-bezier(.4,0,.2,1);
+}
+.music-player.mp-show{transform:translateY(0)}
+.mp-info{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.mp-cover{
+  width:44px;height:44px;border-radius:8px;
+  object-fit:cover;object-position:top center;
+  border:2px solid rgba(249,115,22,.3);flex-shrink:0;
+}
+.mp-meta{min-width:0;display:flex;flex-direction:column;gap:2px}
+.mp-song-title{font-size:.82rem;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mp-artist-label{font-size:.7rem;color:rgba(255,255,255,.45)}
+.mp-play-btn{
+  width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 18px rgba(249,115,22,.4);
+  transition:background .2s,transform .15s;flex-shrink:0;
+}
+.mp-play-btn:hover{background:var(--accent2);transform:scale(1.08)}
+.mp-play-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+.mp-progress-section{display:flex;align-items:center;gap:10px;flex:2;min-width:0}
+.mp-time{font-size:.7rem;color:rgba(255,255,255,.4);white-space:nowrap;font-variant-numeric:tabular-nums}
+.mp-bar{
+  flex:1;height:4px;background:rgba(255,255,255,.12);
+  border-radius:2px;position:relative;cursor:pointer;
+  transition:height .15s;user-select:none;
+}
+.mp-bar:hover,.mp-bar.seeking{height:6px}
+.mp-bar-fill{
+  position:absolute;inset:0 auto 0 0;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius:2px;pointer-events:none;width:0%;
+}
+.mp-thumb{
+  position:absolute;top:50%;left:0%;
+  width:13px;height:13px;border-radius:50%;
+  background:#fff;border:2px solid var(--accent);
+  transform:translate(-50%,-50%);
+  opacity:0;transition:opacity .15s;pointer-events:none;
+}
+.mp-bar:hover .mp-thumb,.mp-bar.seeking .mp-thumb{opacity:1}
+.mp-close-btn{
+  background:none;border:none;cursor:pointer;
+  color:rgba(255,255,255,.3);display:flex;align-items:center;
+  transition:color .2s;flex-shrink:0;padding:4px;
+}
+.mp-close-btn:hover{color:rgba(255,255,255,.8)}
+
+/* ── PAGE LOAD ENTRANCE ── */
+nav{opacity:0;transform:translateY(-18px);transition:opacity .6s ease,transform .6s ease}
+.hero-card{opacity:0;transition:opacity .8s ease .35s}
+.floater{opacity:0;transition:opacity .7s ease var(--fi,.8s)}
+.bg-orb{opacity:0;transition:opacity 1.2s ease var(--fi,1s)}
+body.loaded nav{opacity:1;transform:translateY(0)}
+body.loaded .hero-card{opacity:1}
+body.loaded .floater{opacity:1}
+body.loaded .bg-orb{opacity:var(--oa,.4)}
+
+/* ── SCROLL INDICATOR ── */
+.scroll-hint{
+  position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  z-index:4;display:flex;flex-direction:column;align-items:center;gap:6px;
+  opacity:0;transition:opacity .8s ease 1.6s;cursor:pointer;
+  text-decoration:none;
+}
+body.loaded .scroll-hint{opacity:1}
+.scroll-hint span{font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.scroll-hint svg{animation:scrollBounce 1.9s ease-in-out infinite}
+@keyframes scrollBounce{0%,100%{transform:translateY(0)}55%{transform:translateY(9px)}}
+
+/* LIFE */
+#life{background:#eef2f7}
+.life-grid{display:grid;grid-template-columns:1.45fr 1fr;gap:20px;align-items:start}
+.life-card{background:#fff;border-radius:22px;padding:28px 28px 22px;box-shadow:0 4px 28px rgba(0,0,0,.07);overflow:hidden}
+.life-card-title{font-size:1.8rem;font-weight:800;color:var(--text);margin-bottom:5px;line-height:1.1}
+.life-card-subtitle{font-size:.83rem;color:var(--muted);line-height:1.65;margin-bottom:18px}
+.life-grid-radar{grid-template-columns:1fr 1fr}
+.chart-wrap{position:relative}
+.chart-wrap canvas{display:block;width:100%;border-radius:12px}
+.radar-wrap{position:relative}
+#lifeMap{width:100%;height:300px;border-radius:12px;overflow:hidden;position:relative;z-index:0}
+.map-places{margin-top:12px;display:flex;flex-wrap:wrap;gap:6px}
+.place-chip{display:flex;align-items:center;gap:5px;padding:4px 11px;border-radius:12px;background:rgba(249,115,22,.07);border:1px solid rgba(249,115,22,.18);font-size:.73rem;color:#555;font-weight:500}
+
+/* NAV SOCIAL BUTTON (for non-link icons) */
+.nav-social-btn{background:none;border:none;cursor:pointer;color:#333;display:flex;align-items:center;transition:color .2s;padding:0}
+.nav-social-btn:hover{color:var(--accent)}
+.nav-social-btn svg{width:20px;height:20px;fill:currentColor}
+
+/* INFO POPOVER */
+.info-popover{
+  position:fixed;z-index:9999;
+  background:#1a1a2e;color:#fff;
+  border-radius:12px;padding:14px 18px;
+  font-size:.8rem;line-height:1.5;
+  box-shadow:0 8px 36px rgba(0,0,0,.32);
+  pointer-events:none;opacity:0;
+  transform:translateY(4px);
+  transition:opacity .18s,transform .18s;
+  white-space:nowrap;min-width:160px;
+}
+.info-popover.pv-show{opacity:1;transform:translateY(0);pointer-events:auto}
+.info-popover .pv-label{font-size:.68rem;color:rgba(255,255,255,.4);margin-bottom:3px;letter-spacing:.08em;text-transform:uppercase}
+.info-popover .pv-val{font-weight:700;font-size:.9rem;color:#fff;margin-bottom:9px}
+.info-popover .pv-copy{
+  display:block;width:100%;padding:5px 0;border-radius:7px;
+  background:var(--accent);color:#fff;
+  font-size:.72rem;font-weight:700;cursor:pointer;border:none;
+  transition:background .15s;text-align:center;
+}
+.info-popover .pv-copy:hover{background:var(--accent2)}
+
+@media(max-width:860px){
+  nav{padding:0 20px}
+  .nav-links{display:none}
+  .stage{width:340px;height:340px;--circle:340px}
+  .hero-card{width:260px;padding:22px}
+  .card-name{font-size:1.6rem}
+  section:not(#home){padding:60px 5%}
+  .about-grid,.skills-grid,.int-grid{grid-template-columns:1fr}
+  .life-grid,.life-grid-radar{grid-template-columns:1fr}
+  #lifeMap{height:240px}
+  .life-card-title{font-size:1.4rem}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#home">Myles</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#tech">Tech</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#interests">Interests</a></li>
+    <li><a href="#life">Life</a></li>
+    <li><a href="#blog">Blog</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-social">
+    <a href="https://github.com/" title="GitHub">
+      <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+    </a>
+    <a href="https://www.instagram.com/jalen_qwq/" title="Instagram">
+      <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+    </a>
+    <!-- Update the href below with your actual LinkedIn URL -->
+    <a href="https://www.linkedin.com/in/maolin-hou-a3b3553b0/" target="_blank" title="LinkedIn">
+      <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+    </a>
+    <button class="nav-social-btn" data-popover="wechat" title="WeChat">
+      <svg viewBox="0 0 24 24"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.81-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.856-1.838-.072-3.677-3.684-6.348-8.598-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.49.49 0 01.177-.554 5.338 5.338 0 002.5-4.533c0-3.414-3.067-6.176-6.06-6.21zm-2.318 3.827c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.969-.982zm4.656 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.969-.982z"/></svg>
+    </button>
+    <button class="nav-social-btn" data-popover="email" title="Email">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<section id="home">
+  <!-- background glow orbs -->
+  <div class="bg-orb" style="width:620px;height:620px;background:radial-gradient(circle,rgba(249,115,22,.42),transparent 68%);top:-160px;right:-140px;--od:11s;--ox:-50px;--oy:60px;--oa:.42"></div>
+  <div class="bg-orb" style="width:480px;height:480px;background:radial-gradient(circle,rgba(251,146,60,.35),transparent 65%);bottom:-120px;left:-100px;--od:14s;--ox:60px;--oy:-40px;--oa:.35"></div>
+  <div class="bg-orb" style="width:320px;height:320px;background:radial-gradient(circle,rgba(253,186,116,.3),transparent 65%);top:55%;left:15%;--od:9s;--ox:30px;--oy:-50px;--oa:.28"></div>
+  <!-- mouse-follow glow -->
+  <div id="mouseGlow" style="position:absolute;width:420px;height:420px;border-radius:50%;pointer-events:none;z-index:0;filter:blur(100px);background:radial-gradient(circle,rgba(249,115,22,.22),transparent 70%);transform:translate(-50%,-50%);transition:left .8s ease,top .8s ease;left:50%;top:50%"></div>
+
+  <!-- Fire canvas -->
+  <canvas id="fireCanvas"></canvas>
+
+  <div class="stage">
+    <div class="stage-ring"></div>
+
+    <div class="hero-card" id="heroCard">
+      <p class="card-greeting" id="cardGreeting">My name is:</p>
+      <h1 class="card-name" id="cardName">Myles</h1>
+      <div class="card-divider"></div>
+      <p class="card-iam">I'm a:</p>
+      <ul class="card-roles">
+        <li><a href="#projects">Software Engineer</a></li>
+        <li><a href="#tech">Python · Java · AWS</a></li>
+        <li><a href="#tech">AI &amp; Data Scientist</a></li>
+        <li><a href="#interests">Crypto Trader · UK Drill Fan</a></li>
+        <li><a href="#about">UTS Master's — AI</a></li>
+      </ul>
+    </div>
+
+    <div class="floater" style="--dur:30s;--del:0s;--r:282px;--fi:.5s;z-index:5">
+      <div class="floater-inner" style="--r:282px">
+        <div class="avatar-circle" style="background:none;padding:0">
+          <img src="images/头像.png" alt="Myles" style="width:100%;height:100%;object-fit:cover;display:block">
+        </div>
+      </div>
+    </div>
+    <div class="floater" style="--dur:30s;--del:-7.5s;--r:282px;--fi:.7s">
+      <div class="floater-inner" style="--r:282px"><div class="icon-bubble"><img src="images/nvidia.png" alt="Nvidia" style="width:34px;height:34px;object-fit:contain"></div></div>
+    </div>
+    <div class="floater" style="--dur:30s;--del:-15s;--r:282px;--fi:.9s">
+      <div class="floater-inner" style="--r:282px"><div class="icon-bubble" style="color:#f97316">₿</div></div>
+    </div>
+    <div class="floater" style="--dur:30s;--del:-22.5s;--r:282px;--fi:1.1s">
+      <div class="floater-inner" style="--r:282px"><div class="icon-bubble"><img src="images/tesla.png" alt="Tesla" style="width:34px;height:34px;object-fit:contain"></div></div>
+    </div>
+    <div class="floater" style="--dur:50s;--del:-6s;--r:240px;--fi:1.3s">
+      <div class="floater-inner" style="--r:240px"><div class="icon-bubble-md">☕</div></div>
+    </div>
+    <div class="floater" style="--dur:50s;--del:-19s;--r:240px;--fi:1.5s">
+      <div class="floater-inner" style="--r:240px"><div class="icon-bubble-md">🎵</div></div>
+    </div>
+    <div class="floater" style="--dur:50s;--del:-34s;--r:240px;--fi:1.7s">
+      <div class="floater-inner" style="--r:240px"><div class="icon-bubble-md"><img src="images/Claude Clawd.png" alt="Claude" style="width:28px;height:28px;object-fit:contain"></div></div>
+    </div>
+  </div>
+
+  <a class="scroll-hint" href="#about">
+    <span>scroll</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </a>
+</section>
+
+<section id="about">
+  <div class="about-grid">
+    <div>
+      <div class="s-label">Who I Am</div>
+      <h2 class="s-title">About <span>Me</span></h2>
+      <div class="divider"></div>
+      <p class="about-p">I'm <strong>Maolin Hou (侯茂林)</strong>, also known as <strong>Myles</strong>. Born on December 1, 2002, in Guangzhou 🇨🇳, now based in Sydney, Australia 🇦🇺.</p>
+      <p class="about-p">I completed my <strong>Bachelor's in Software Engineering</strong> at Hainan Normal University (Sep 2021 – Jul 2025), and I'm currently pursuing a <strong>Master's in Artificial Intelligence</strong> at the University of Technology Sydney (Jan 2026 – Jan 2028).</p>
+      <p class="about-p">Outside of code, I'm into <strong>UK drill music</strong> (big Central Cee fan), streetwear (<strong>Stussy, Yeezy, Chrome Hearts</strong>), and <strong>crypto &amp; US stock markets</strong>.</p>
+      <div class="about-tags">
+        <span class="tag">🇦🇺 Sydney</span>
+        <span class="tag">🇨🇳 Guangzhou</span>
+        <span class="tag">🎓 UTS — AI Master's</span>
+        <span class="tag">🤖 Artificial Intelligence</span>
+        <span class="tag">💹 Crypto</span>
+        <span class="tag">🎵 UK Drill</span>
+        <span class="tag">🧣 Streetwear</span>
+      </div>
+    </div>
+    <div class="stats-col">
+      <div class="stat-card"><span class="stat-icon">🎓</span><div><div class="stat-val">UTS</div><div class="stat-desc">Master of AI · 2026–2028</div></div></div>
+      <div class="stat-card"><span class="stat-icon">🏫</span><div><div class="stat-val">HNNU</div><div class="stat-desc">B.Eng Software Engineering · 2021–2025</div></div></div>
+      <div class="stat-card"><span class="stat-icon">🌏</span><div><div class="stat-val">Sydney</div><div class="stat-desc">Based here since Jan 2026</div></div></div>
+      <div class="stat-card"><span class="stat-icon">🎂</span><div><div class="stat-val">Dec 2002</div><div class="stat-desc">Born in Guangzhou, China</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="tech">
+  <div class="s-label">What I Use</div>
+  <h2 class="s-title">Tech <span>Stack</span></h2>
+  <div class="divider"></div>
+  <div class="skills-grid">
+    <div class="skill-item"><div class="skill-hd"><span class="skill-nm">Python</span><span class="skill-pc">85%</span></div><div class="skill-bar"><div class="skill-fill" data-w="85"></div></div></div>
+    <div class="skill-item"><div class="skill-hd"><span class="skill-nm">Java</span><span class="skill-pc">80%</span></div><div class="skill-bar"><div class="skill-fill" data-w="80"></div></div></div>
+    <div class="skill-item"><div class="skill-hd"><span class="skill-nm">AWS / Cloud Computing</span><span class="skill-pc">72%</span></div><div class="skill-bar"><div class="skill-fill" data-w="72"></div></div></div>
+    <div class="skill-item"><div class="skill-hd"><span class="skill-nm">Data Science / ML</span><span class="skill-pc">68%</span></div><div class="skill-bar"><div class="skill-fill" data-w="68"></div></div></div>
+    <div class="skill-item"><div class="skill-hd"><span class="skill-nm">SQL / Databases</span><span class="skill-pc">70%</span></div><div class="skill-bar"><div class="skill-fill" data-w="70"></div></div></div>
+    <div class="skill-item"><div class="skill-hd"><span class="skill-nm">Software Engineering</span><span class="skill-pc">78%</span></div><div class="skill-bar"><div class="skill-fill" data-w="78"></div></div></div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="s-label">What I've Built</div>
+  <h2 class="s-title">Featured <span>Projects</span></h2>
+  <div class="divider"></div>
+  <div class="proj-grid">
+    <div class="proj-card"><div class="proj-ico">🎓</div><div class="proj-name">CLIUniApp</div><div class="proj-desc">Command-line university enrollment system with OOP design, grade calculation, and persistent data storage.</div><div class="proj-tech"><span class="tbadge">Python</span><span class="tbadge">OOP</span><span class="tbadge">CLI</span></div></div>
+    <div class="proj-card"><div class="proj-ico">🤖</div><div class="proj-name">Crypto Trading Bot</div><div class="proj-desc">Reinforcement learning DQN agent for crypto trading strategy optimization with market simulation.</div><div class="proj-tech"><span class="tbadge">Python</span><span class="tbadge">RL/DQN</span><span class="tbadge">NumPy</span></div></div>
+    <div class="proj-card"><div class="proj-ico">☁️</div><div class="proj-name">GenAI in Cloud</div><div class="proj-desc">Research on GenAI infrastructure — CoreWeave &amp; Nebius as GPU cloud providers for AI workloads.</div><div class="proj-tech"><span class="tbadge">AWS</span><span class="tbadge">GenAI</span><span class="tbadge">Research</span></div></div>
+    <div class="proj-card"><div class="proj-ico">📊</div><div class="proj-name">Data Mining Pipeline</div><div class="proj-desc">End-to-end CRISP-DM project — data cleaning, clustering, normalization, and visualization.</div><div class="proj-tech"><span class="tbadge">Scikit-learn</span><span class="tbadge">Pandas</span><span class="tbadge">Python</span></div></div>
+  </div>
+</section>
+
+<section id="interests">
+  <div class="s-label">Beyond Code</div>
+  <h2 class="s-title">My <span>Interests</span></h2>
+  <div class="divider"></div>
+  <div class="int-grid">
+    <div class="int-card" id="musicCard" style="cursor:pointer" title="Click to see my playlist">
+      <div class="int-ico">🎵</div>
+      <div class="int-title">Music</div>
+      <div class="int-desc">Deep into <strong>UK drill &amp; rap</strong>. Central Cee on repeat. Music keeps me in the zone when building.</div>
+      <div style="margin-top:8px;font-size:.73rem;color:var(--accent);font-weight:700">See my favourites →</div>
+    </div>
+    <div class="int-card">
+      <div style="display:flex;gap:12px;justify-content:center;margin-bottom:14px;font-size:2rem">
+        <span title="Stussy">🤙</span>
+        <span title="Yeezy">👟</span>
+        <span title="Chrome Hearts">⛓️</span>
+      </div>
+      <div class="int-title">Fashion</div>
+      <div class="int-desc">Streetwear is life — <strong>Stussy</strong>, <strong>Yeezy</strong> and <strong>Chrome Hearts</strong> are the go-tos.</div>
+    </div>
+    <div class="int-card">
+      <div class="logo-single">
+        <svg viewBox="0 0 48 48" width="48" height="48" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="24" cy="24" r="24" fill="#F7931A"/>
+          <text x="25" y="34" text-anchor="middle" font-size="26" font-weight="bold" fill="white" font-family="Georgia,serif">₿</text>
+        </svg>
+      </div>
+      <div class="int-title">Crypto</div>
+      <div class="int-desc">Active in <strong>BTC markets</strong>. Into trading, DeFi, and the code behind decentralization.</div>
+    </div>
+    <div class="int-card">
+      <div class="int-ico">📈</div>
+      <div class="int-title">US Stock Market</div>
+      <div class="int-desc">Watching <strong>Tesla, Nvidia</strong> and <strong>SpaceX</strong> closely. Fascinated by the overlap of tech innovation and market dynamics.</div>
+    </div>
+  </div>
+</section>
+
+<section id="life">
+  <div class="s-label">Time &amp; Space</div>
+  <h2 class="s-title">My <span>Life</span></h2>
+  <div class="divider"></div>
+  <div class="life-grid">
+    <div class="life-card">
+      <div class="life-card-title">Time</div>
+      <div class="life-card-subtitle">This is how I spend my time — growing up in Guangzhou, studying in Hainan, now building things in Sydney.</div>
+      <div class="chart-wrap" id="timeChartWrap"></div>
+    </div>
+    <div class="life-card">
+      <div class="life-card-title">Space</div>
+      <div class="life-card-subtitle">This is my travel footprint. Currently based in Sydney, Australia.</div>
+      <div id="lifeMap"></div>
+      <div class="map-places">
+        <span class="place-chip">📍 Guangzhou</span>
+        <span class="place-chip">📍 Hainan</span>
+        <span class="place-chip">📍 Sydney</span>
+        <span class="place-chip">📍 Bangkok</span>
+        <span class="place-chip">📍 Tokyo</span>
+        <span class="place-chip">📍 Okinawa</span>
+        <span class="place-chip">📍 Kuala Lumpur</span>
+        <span class="place-chip">📍 Milan</span>
+        <span class="place-chip">📍 Zurich</span>
+        <span class="place-chip">📍 Los Angeles</span>
+      </div>
+    </div>
+  </div>
+  <div class="life-grid life-grid-radar" style="margin-top:20px">
+    <div class="life-card">
+      <div class="life-card-title">Movie</div>
+      <div class="life-card-subtitle">The statistics of Movies I have watched.</div>
+      <div class="radar-wrap" id="movieRadarWrap"></div>
+    </div>
+    <div class="life-card">
+      <div class="life-card-title">Album</div>
+      <div class="life-card-subtitle">The statistics of Music Albums I have listened.</div>
+      <div class="radar-wrap" id="albumRadarWrap"></div>
+    </div>
+  </div>
+</section>
+
+<section id="blog">
+  <div class="s-label">Thoughts &amp; Writings</div>
+  <h2 class="s-title">Blog <span>Posts</span></h2>
+  <div class="divider"></div>
+  <div class="blog-grid">
+    <div class="blog-card"><div class="blog-date">MAY 2025</div><div class="blog-title">What I Learned Building a CLI App in Python</div><div class="blog-excerpt">OOP design patterns, validation, and the lessons from building CLIUniApp from scratch.</div><span class="blog-tag">Software Engineering</span><span class="blog-read">Read more →</span></div>
+    <div class="blog-card"><div class="blog-date">APR 2025</div><div class="blog-title">Why Every CS Student Should Understand Cloud</div><div class="blog-excerpt">AWS, SaaS, and why cloud isn't just "someone else's computer" — a student's take.</div><span class="blog-tag">Cloud Computing</span><span class="blog-read">Read more →</span></div>
+    <div class="blog-card"><div class="blog-date">MAR 2025</div><div class="blog-title">Crypto &amp; Code: Building a DQN Trading Agent</div><div class="blog-excerpt">Applying RL to crypto markets — what worked, what blew up, and what I'd do differently.</div><span class="blog-tag">ML / AI</span><span class="blog-read">Read more →</span></div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="s-label">Let's Connect</div>
+  <h2 class="s-title" style="max-width:none">Find Me <span>Online</span></h2>
+  <div class="divider" style="margin:0 auto 16px"></div>
+  <p style="color:var(--muted);font-size:.9rem;max-width:360px;margin:0 auto">Open to collabs, internships, and good conversations.</p>
+  <div class="social-links">
+    <a class="s-btn" href="https://www.instagram.com/jalen_qwq/" target="_blank">
+      <svg viewBox="0 0 24 24" width="18" height="18" style="fill:#333;flex-shrink:0"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      @jalen_qwq
+    </a>
+    <a class="s-btn" href="https://github.com/" target="_blank">
+      <svg viewBox="0 0 24 24" width="18" height="18" style="fill:#333;flex-shrink:0"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      GitHub
+    </a>
+    <!-- Update href below with your actual LinkedIn URL -->
+    <a class="s-btn" href="https://www.linkedin.com/in/maolin-hou-a3b3553b0/" target="_blank">
+      <svg viewBox="0 0 24 24" width="18" height="18" style="fill:#333;flex-shrink:0"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      LinkedIn
+    </a>
+    <button class="s-btn" data-popover="wechat" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" width="18" height="18" style="fill:#333;flex-shrink:0"><path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.81-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.856-1.838-.072-3.677-3.684-6.348-8.598-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178A1.17 1.17 0 014.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 01-1.162 1.178 1.17 1.17 0 01-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 01.598.082l1.584.926a.272.272 0 00.14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.49.49 0 01.177-.554 5.338 5.338 0 002.5-4.533c0-3.414-3.067-6.176-6.06-6.21zm-2.318 3.827c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.969-.982zm4.656 0c.535 0 .969.44.969.982a.976.976 0 01-.969.983.976.976 0 01-.969-.983c0-.542.434-.982.969-.982z"/></svg>
+      WeChat
+    </button>
+    <button class="s-btn" data-popover="email" style="cursor:pointer">
+      <svg viewBox="0 0 24 24" width="18" height="18" style="fill:#333;flex-shrink:0"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+      jalensuggs77@gmail.com
+    </button>
+  </div>
+</section>
+
+<!-- Music Modal -->
+<div class="music-modal-overlay" id="musicModal">
+  <div class="music-modal">
+    <button class="music-modal-close" id="musicModalClose">✕</button>
+    <div class="music-modal-header">
+      <div class="ico">🎵</div>
+      <h3>My Favourite Artists</h3>
+      <p>The rappers &amp; artists keeping me in the zone</p>
+    </div>
+    <div class="artist-grid">
+      <div class="artist-card" data-song="music/CENTRAL CEE - WAGWAN.mp3" data-title="Wagwan" data-artist="Central Cee">
+        <img class="artist-avatar" src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Central_cee-5.jpg/250px-Central_cee-5.jpg" alt="Central Cee">
+        <div class="artist-name">Central Cee</div>
+        <span class="artist-tag">UK Drill</span>
+        <div class="artist-desc">Dropped 'Doja' and the whole UK went crazy. Zero features, all gas.</div>
+        <div class="artist-play-pill">▶ Play</div>
+      </div>
+      <div class="artist-card" data-song="music/DRAKE - WHAT DID I MISS.mp3" data-title="What Did I Miss" data-artist="Drake">
+        <img class="artist-avatar" src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/28/Drake_July_2016.jpg/250px-Drake_July_2016.jpg" alt="Drake" style="object-position:50% 0%">
+        <div class="artist-name">Drake</div>
+        <span class="artist-tag">Hip-Hop / R&B</span>
+        <div class="artist-desc">Made crying in the club a whole vibe. From 0 to 100, bro invented the era.</div>
+        <div class="artist-play-pill">▶ Play</div>
+      </div>
+      <div class="artist-card" data-song="music/Kanye West - Violent Crimes.mp3" data-title="Violent Crimes" data-artist="Kanye West">
+        <img class="artist-avatar" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Kanye_West_at_the_2009_Tribeca_Film_Festival_%28crop_2%29.jpg/250px-Kanye_West_at_the_2009_Tribeca_Film_Festival_%28crop_2%29.jpg" alt="Kanye West">
+        <div class="artist-name">Kanye West</div>
+        <span class="artist-tag">Rap / Avant-garde</span>
+        <div class="artist-desc">MBDTF to Vultures is a spiritual journey. The genius never left, he just went different.</div>
+        <div class="artist-play-pill">▶ Play</div>
+      </div>
+      <div class="artist-card" data-song="music/LOYALTY ft. Rihanna - Kendrick Lamar.mp3" data-title="Loyalty ft. Rihanna" data-artist="Kendrick Lamar">
+        <img class="artist-avatar" src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/18/KendrickSZASPurs230725-144_%28cropped%29_desaturated.jpg/250px-KendrickSZASPurs230725-144_%28cropped%29_desaturated.jpg" alt="Kendrick Lamar">
+        <div class="artist-name">Kendrick Lamar</div>
+        <span class="artist-tag">Conscious Rap</span>
+        <div class="artist-desc">Took down the biggest rapper alive with a PDF. Not like us, not like us.</div>
+        <div class="artist-play-pill">▶ Play</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sticky Music Player -->
+<div class="music-player" id="musicPlayer">
+  <div class="mp-info">
+    <img class="mp-cover" id="mpCover" src="" alt="">
+    <div class="mp-meta">
+      <div class="mp-song-title" id="mpSongTitle">—</div>
+      <div class="mp-artist-label" id="mpArtistLabel">Click an artist to play</div>
+    </div>
+  </div>
+  <button class="mp-play-btn" id="mpPlayBtn" disabled>
+    <svg id="mpPlaySvg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="mpPauseSvg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+  </button>
+  <div class="mp-progress-section">
+    <span class="mp-time" id="mpCurrent">0:00</span>
+    <div class="mp-bar" id="mpBar">
+      <div class="mp-bar-fill" id="mpBarFill"></div>
+      <div class="mp-thumb" id="mpThumb"></div>
+    </div>
+    <span class="mp-time" id="mpDuration">0:00</span>
+  </div>
+  <button class="mp-close-btn" id="mpCloseBtn" title="Close player">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+  </button>
+</div>
+
+<footer>Built by <span>Myles (Maolin Hou)</span> · Sydney, AU · 2026</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Trigger entrance animations
+setTimeout(() => document.body.classList.add('loaded'), 80);
+
+// Card tilt
+const card = document.getElementById('heroCard');
+let cx=0,cy=0,tx=0,ty=0;
+document.querySelector('#home').addEventListener('mousemove',e=>{
+  const r=card.getBoundingClientRect();
+  cx=(e.clientX-(r.left+r.width/2))/(r.width/2);
+  cy=(e.clientY-(r.top+r.height/2))/(r.height/2);
+});
+document.querySelector('#home').addEventListener('mouseleave',()=>{cx=0;cy=0;});
+(function loop(){
+  tx+=(cx-tx)*.08; ty+=(cy-ty)*.08;
+  card.style.transform=`translate(-50%,-50%) perspective(700px) rotateX(${-ty*14}deg) rotateY(${tx*14}deg)`;
+  card.style.boxShadow=`0 ${8+Math.abs(tx+ty)*12}px ${48+Math.abs(tx+ty)*20}px rgba(249,115,22,${.08+Math.abs(tx+ty)*.05})`;
+  requestAnimationFrame(loop);
+})();
+
+// Mouse-follow glow
+const mouseGlow = document.getElementById('mouseGlow');
+const homeSection = document.querySelector('#home');
+homeSection.addEventListener('mousemove', e => {
+  const r = homeSection.getBoundingClientRect();
+  mouseGlow.style.left = (e.clientX - r.left) + 'px';
+  mouseGlow.style.top  = (e.clientY - r.top)  + 'px';
+});
+
+// Name cycling: Myles → Maolin Hou → 侯茂林 → repeat
+const nameData = [
+  { name: 'Myles',      greeting: 'My name is:' },
+  { name: 'Maolin Hou', greeting: 'My name is:' },
+  { name: '侯茂林',     greeting: '我叫：' },
+];
+let nameIdx = 0;
+const nameEl     = document.getElementById('cardName');
+const greetingEl = document.getElementById('cardGreeting');
+
+function cycleName() {
+  // 1. Rush out
+  nameEl.classList.remove('rush-in');
+  nameEl.classList.add('rush-out');
+  setTimeout(() => {
+    // 2. Swap text while invisible
+    nameIdx = (nameIdx + 1) % nameData.length;
+    nameEl.textContent     = nameData[nameIdx].name;
+    greetingEl.textContent = nameData[nameIdx].greeting;
+    // 3. Rush in from behind
+    nameEl.classList.remove('rush-out');
+    nameEl.classList.add('rush-in');
+    setTimeout(() => nameEl.classList.remove('rush-in'), 500);
+  }, 560); // wait for rush-out to finish
+}
+setInterval(cycleName, 2800);
+
+// Music modal
+const musicModal = document.getElementById('musicModal');
+document.getElementById('musicCard').addEventListener('click', () => musicModal.classList.add('open'));
+document.getElementById('musicModalClose').addEventListener('click', () => musicModal.classList.remove('open'));
+musicModal.addEventListener('click', e => { if(e.target === musicModal) musicModal.classList.remove('open'); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') musicModal.classList.remove('open'); });
+
+// ── Fire + Smoke ─────────────────────────────────────────────────
+const fireCanvas = document.getElementById('fireCanvas');
+const fctx = fireCanvas.getContext('2d');
+let fParts = [], sParts = [];
+
+function resizeFire() {
+  fireCanvas.width  = homeSection.offsetWidth;
+  fireCanvas.height = homeSection.offsetHeight;
+}
+resizeFire();
+window.addEventListener('resize', resizeFire);
+
+class Flame {
+  constructor(x, y, spark) {
+    this.x = x + (Math.random() - .5) * 22;
+    this.y = y;
+    this.spark = !!spark;
+    if (spark) {
+      this.vx = (Math.random() - .5) * 4.5;
+      this.vy = -(Math.random() * 6 + 2.5);
+      this.r  = Math.random() * 3.5 + 1;
+      this.life = .75 + Math.random() * .4;
+      this.decay = .018 + Math.random() * .012;
+    } else {
+      this.vx = (Math.random() - .5) * 1.6;
+      this.vy = -(Math.random() * 2.8 + 1.6);
+      this.r  = Math.random() * 38 + 20;   // big fluffy flames
+      this.life = 1.0;
+      this.decay = .006 + Math.random() * .007;
+    }
+    this.wob  = Math.random() * Math.PI * 2;
+    this.wobS = .04 + Math.random() * .08;
+  }
+  update() {
+    this.wob  += this.wobS;
+    this.x    += this.vx + Math.sin(this.wob) * .8;
+    this.y    += this.vy;
+    this.vy   *= .987;
+    this.life -= this.decay;
+    if (!this.spark) this.r = Math.max(0, this.r * .991);
+  }
+  draw(ctx) {
+    const t = Math.max(0, this.life);
+    if (t <= 0 || this.r <= 0) return;
+    let r, g, b, a;
+    if (t > .7) { r=255; g=Math.floor(65 + (t-.7)/.3*100); b=0; a=t*.48; }
+    else if (t > .38) { r=255; g=Math.floor(150 + (t-.38)/.32*105); b=0; a=t*.52; }
+    else { r=255; g=Math.floor(220 + t/.38*35); b=Math.floor((1-t/.38)*50); a=t*.58; }
+    if (this.spark) {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(${r},${g},${b},${Math.min(1,a*1.4)})`;
+      ctx.fill();
+    } else {
+      const grd = ctx.createRadialGradient(this.x, this.y - this.r*.12, 0, this.x, this.y, this.r);
+      grd.addColorStop(0,   `rgba(${r},${g},${b},${a})`);
+      grd.addColorStop(.42, `rgba(${r},${Math.floor(g*.58)},0,${a*.72})`);
+      grd.addColorStop(1,   `rgba(190,15,0,0)`);
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+      ctx.fillStyle = grd;
+      ctx.fill();
+    }
+  }
+  get dead() { return this.life <= 0 || this.r <= 0; }
+}
+
+class Smoke {
+  constructor(x, y) {
+    this.x = x + (Math.random() - .5) * 36;
+    this.y = y;
+    this.vx = (Math.random() - .5) * .65;
+    this.vy = -(Math.random() * 1.1 + .42);
+    this.r  = Math.random() * 28 + 22;
+    this.life  = .6 + Math.random() * .4;
+    this.decay = .0024 + Math.random() * .003;
+    this.wob  = Math.random() * Math.PI * 2;
+    this.wobS = .016 + Math.random() * .022;
+  }
+  update() {
+    this.wob += this.wobS;
+    this.x   += this.vx + Math.sin(this.wob) * .45;
+    this.y   += this.vy;
+    this.life -= this.decay;
+    this.r   += .32;
+  }
+  draw(ctx) {
+    const t = Math.max(0, this.life);
+    if (t <= 0) return;
+    const a = t * .14;
+    const v = Math.floor(60 + (1-t) * 50);
+    const grd = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.r);
+    grd.addColorStop(0, `rgba(${v},${v},${v},${a})`);
+    grd.addColorStop(1, `rgba(${v},${v},${v},0)`);
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fillStyle = grd;
+    ctx.fill();
+  }
+  get dead() { return this.life <= 0; }
+}
+
+let fFrame = 0;
+(function fireLoop() {
+  requestAnimationFrame(fireLoop);
+  fFrame++;
+  fctx.clearRect(0, 0, fireCanvas.width, fireCanvas.height);
+
+  const heroCard = document.getElementById('heroCard');
+  const hr = homeSection.getBoundingClientRect();
+  const cr = heroCard.getBoundingClientRect();
+  const L  = cr.left - hr.left, T = cr.top - hr.top;
+  const W  = cr.width, H = cr.height;
+  const B  = T + H,    R = L + W,  CX = L + W * .5;
+
+  // Emit fire along bottom edge + sides
+  if (fParts.length < 180) {
+    for (let i = 0; i < 5; i++)
+      fParts.push(new Flame(L + 16 + Math.random() * (W - 32), B + 5));
+    if (fFrame % 2 === 0) {
+      fParts.push(new Flame(L - 6, B - Math.random() * H * .15));
+      fParts.push(new Flame(R + 6, B - Math.random() * H * .15));
+    }
+    if (fFrame % 3 === 0)
+      for (let i = 0; i < 3; i++)
+        fParts.push(new Flame(L + Math.random() * W, B - 6, true));
+  }
+  // Smoke from card top
+  if (sParts.length < 40 && fFrame % 5 === 0)
+    for (let i = 0; i < 2; i++)
+      sParts.push(new Smoke(CX + (Math.random() - .5) * W * .58, T - 12));
+
+  fParts = fParts.filter(p => { p.update(); return !p.dead; });
+  sParts = sParts.filter(p => { p.update(); return !p.dead; });
+
+  // Smoke behind, flames + sparks on top (source-over — no dark bg needed)
+  sParts.forEach(p => p.draw(fctx));
+  fParts.filter(p => !p.spark).forEach(p => p.draw(fctx));
+  fctx.save();
+  fctx.globalCompositeOperation = 'lighter';
+  fParts.filter(p => p.spark).forEach(p => p.draw(fctx));
+  fctx.restore();
+})();
+// ─────────────────────────────────────────────────────────────────
+
+// ── Lightning — random bolts, smooth blurred glow ─────────────────
+(function initLightning() {
+  const home = document.getElementById('home');
+  if (!home) return;
+
+  const cvs = document.createElement('canvas');
+  cvs.style.cssText = 'position:absolute;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none';
+  home.insertBefore(cvs, home.firstChild);
+  const ctx = cvs.getContext('2d');
+  let W = 0, H = 0;
+  function resize() { W = cvs.width = home.offsetWidth; H = cvs.height = home.offsetHeight; }
+  resize();
+  window.addEventListener('resize', resize, {passive:true});
+
+  // Fractal midpoint displacement → jagged lightning polyline
+  function mkBolt(x1, y1, x2, y2, depth, spread) {
+    if (depth === 0) return [{x:x1,y:y1},{x:x2,y:y2}];
+    const mx=(x1+x2)/2, my=(y1+y2)/2, dx=x2-x1, dy=y2-y1, len=Math.hypot(dx,dy)||1;
+    const off=(Math.random()-.5)*len*spread;
+    const px=mx-dy/len*off, py=my+dx/len*off;
+    return [...mkBolt(x1,y1,px,py,depth-1,spread*.7), ...mkBolt(px,py,x2,y2,depth-1,spread*.7).slice(1)];
+  }
+
+  // Pre-render a random bolt (shape + gaussian-blurred glow) onto its own canvas
+  function renderBolt() {
+    const sx = Math.random()*W, sy = Math.random()*H;
+    const angle = Math.random()*Math.PI*2;
+    const len = 320 + Math.random()*380;
+    const main = mkBolt(sx,sy, sx+Math.cos(angle)*len, sy+Math.sin(angle)*len, 6, .5);
+    const paths = [main];
+    const nb = 1+Math.floor(Math.random()*3);
+    for (let b=0; b<nb; b++) {
+      const seg = main[Math.floor(main.length*(.2+Math.random()*.6))];
+      const ba = angle+(Math.random()-.5)*1.7;
+      const bl = len*(.25+Math.random()*.4);
+      paths.push(mkBolt(seg.x,seg.y, seg.x+Math.cos(ba)*bl, seg.y+Math.sin(ba)*bl, 5, .45));
+    }
+    const off = document.createElement('canvas');
+    off.width = W; off.height = H;
+    const o = off.getContext('2d');
+    o.lineCap='round'; o.lineJoin='round';
+    const stroke = (color, width, blur) => {
+      o.save();
+      o.filter = `blur(${blur}px)`;
+      o.strokeStyle = color; o.lineWidth = width;
+      paths.forEach(pts => {
+        o.beginPath();
+        pts.forEach((p,i) => i ? o.lineTo(p.x,p.y) : o.moveTo(p.x,p.y));
+        o.stroke();
+      });
+      o.restore();
+    };
+    stroke('rgba(255,105,10,0.80)', 8,   22);  // soft outer glow
+    stroke('rgba(255,150,35,1.0)',  6,   10);  // mid glow
+    stroke('rgba(255,210,100,1.0)', 3.5, 3.6); // inner
+    stroke('rgba(255,252,230,1.0)', 2.4, 0.7); // white-hot core
+    return off;
+  }
+
+  function spawnBolt() {
+    return {
+      cv: renderBolt(),
+      phase: 0, t: 0,
+      flashDur: 2+Math.floor(Math.random()*3),
+      holdDur:  16+Math.floor(Math.random()*20),
+      fadeDur:  34+Math.floor(Math.random()*30),
+      delay: 0
+    };
+  }
+
+  const bolts = [];
+  for (let i=0; i<6; i++) { const b=spawnBolt(); b.delay=i*22; bolts.push(b); }
+
+  let active = true;
+  new IntersectionObserver(e => { active=e[0].isIntersecting; }, {threshold:0}).observe(home);
+
+  (function frame() {
+    requestAnimationFrame(frame);
+    if (!active) return;
+    ctx.clearRect(0,0,W,H);
+    for (let i=bolts.length-1; i>=0; i--) {
+      const b = bolts[i];
+      if (b.delay > 0) { b.delay--; continue; }
+      let a;
+      if (b.phase===0) { a=1; b.t++; if (b.t>=b.flashDur){b.phase=1;b.t=0;} }
+      else if (b.phase===1) { a=.85+.15*Math.sin(b.t*.4); b.t++; if (b.t>=b.holdDur){b.phase=2;b.t=0;} }
+      else {
+        a=1-(b.t/b.fadeDur); b.t++;
+        if (b.t>=b.fadeDur) {
+          bolts.splice(i,1);
+          const nb=spawnBolt(); nb.delay=55+Math.floor(Math.random()*140);
+          bolts.push(nb); continue;
+        }
+      }
+      ctx.globalAlpha = Math.max(0,a);
+      ctx.drawImage(b.cv, 0, 0);
+    }
+    ctx.globalAlpha = 1;
+  })();
+})();
+// ──────────────────────────────────────────────────────────────────
+
+// Music Player
+const audio       = new Audio();
+const mpPlayer    = document.getElementById('musicPlayer');
+const mpPlayBtn   = document.getElementById('mpPlayBtn');
+const mpPlaySvg   = document.getElementById('mpPlaySvg');
+const mpPauseSvg  = document.getElementById('mpPauseSvg');
+const mpCoverImg  = document.getElementById('mpCover');
+const mpSongTitle = document.getElementById('mpSongTitle');
+const mpArtistLbl = document.getElementById('mpArtistLabel');
+const mpBar       = document.getElementById('mpBar');
+const mpBarFill   = document.getElementById('mpBarFill');
+const mpThumb     = document.getElementById('mpThumb');
+const mpCurrent   = document.getElementById('mpCurrent');
+const mpDuration  = document.getElementById('mpDuration');
+const mpCloseBtn  = document.getElementById('mpCloseBtn');
+let   isSeeking   = false;
+let   currentCard = null;
+
+function fmtTime(s) {
+  if (!s || isNaN(s)) return '0:00';
+  return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+}
+function setPlayState(playing) {
+  mpPlaySvg.style.display  = playing ? 'none' : '';
+  mpPauseSvg.style.display = playing ? '' : 'none';
+}
+function updateProgress() {
+  if (!audio.duration || isSeeking) return;
+  const pct = (audio.currentTime / audio.duration) * 100;
+  mpBarFill.style.width = pct + '%';
+  mpThumb.style.left    = pct + '%';
+  mpCurrent.textContent = fmtTime(audio.currentTime);
+}
+
+function loadArtist(card) {
+  if (currentCard) currentCard.classList.remove('now-playing');
+  currentCard = card;
+  card.classList.add('now-playing');
+
+  const file   = card.dataset.song;
+  const title  = card.dataset.title;
+  const artist = card.dataset.artist;
+  const cover  = card.querySelector('img.artist-avatar').src;
+
+  mpCoverImg.src       = cover;
+  mpSongTitle.textContent  = title;
+  mpArtistLbl.textContent  = artist;
+  mpBarFill.style.width    = '0%';
+  mpThumb.style.left       = '0%';
+  mpCurrent.textContent    = '0:00';
+  mpDuration.textContent   = '0:00';
+
+  audio.src = file.replace(/ /g, '%20');
+  audio.load();
+  audio.play().catch(() => {});
+  mpPlayBtn.disabled = false;
+  mpPlayer.classList.add('mp-show');
+  document.body.style.paddingBottom = '68px';
+}
+
+// Artist card clicks
+document.querySelectorAll('.artist-card[data-song]').forEach(card => {
+  card.addEventListener('click', () => loadArtist(card));
+});
+
+// Play / Pause
+mpPlayBtn.addEventListener('click', () => {
+  if (audio.paused) { audio.play(); } else { audio.pause(); }
+});
+
+audio.addEventListener('play',  () => setPlayState(true));
+audio.addEventListener('pause', () => setPlayState(false));
+audio.addEventListener('ended', () => { setPlayState(false); mpBarFill.style.width='100%'; mpThumb.style.left='100%'; });
+audio.addEventListener('loadedmetadata', () => { mpDuration.textContent = fmtTime(audio.duration); });
+audio.addEventListener('timeupdate', updateProgress);
+
+// Close player
+mpCloseBtn.addEventListener('click', () => {
+  audio.pause();
+  mpPlayer.classList.remove('mp-show');
+  document.body.style.paddingBottom = '';
+  if (currentCard) { currentCard.classList.remove('now-playing'); currentCard = null; }
+});
+
+// Seekable progress bar (mouse)
+function seekTo(e) {
+  const rect = mpBar.getBoundingClientRect();
+  const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  mpBarFill.style.width = (pct * 100) + '%';
+  mpThumb.style.left    = (pct * 100) + '%';
+  if (audio.duration) { audio.currentTime = pct * audio.duration; mpCurrent.textContent = fmtTime(audio.currentTime); }
+}
+mpBar.addEventListener('mousedown', e => { isSeeking = true; mpBar.classList.add('seeking'); seekTo(e); });
+document.addEventListener('mousemove', e => { if (isSeeking) seekTo(e); });
+document.addEventListener('mouseup',   () => { if (isSeeking) { isSeeking = false; mpBar.classList.remove('seeking'); } });
+
+// Touch support
+mpBar.addEventListener('touchstart', e => { isSeeking = true; mpBar.classList.add('seeking'); seekTo(e.touches[0]); }, {passive:true});
+document.addEventListener('touchmove', e => { if (isSeeking) seekTo(e.touches[0]); }, {passive:true});
+document.addEventListener('touchend',  () => { if (isSeeking) { isSeeking = false; mpBar.classList.remove('seeking'); } });
+
+// Skill bars
+const obs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting){e.target.style.width=e.target.dataset.w+'%';obs.unobserve(e.target);}});
+},{threshold:.3});
+document.querySelectorAll('.skill-fill').forEach(b=>obs.observe(b));
+
+// ── Life Section ──────────────────────────────────────────────────
+function buildTimeChart() {
+  const wrap = document.getElementById('timeChartWrap');
+  if (!wrap) return;
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'display:block;width:100%;cursor:crosshair;border-radius:12px';
+  wrap.appendChild(canvas);
+
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const ages = [0,3,6,9,12,15,18,20,21,23];
+  const n = ages.length;
+  // lx/ly = fraction of chart area (0–1 from left/top) for label anchor — verified inside each band
+  const cats = [
+    {name:'Study',  color:'#A8C5E0', data:[15,20,30,35,35,30,30,28,25,22], lx:0.36, ly:0.82},
+    {name:'Gaming', color:'#9CAFD8', data:[ 5, 5, 8,15,20,25,20,15,12, 8], lx:0.56, ly:0.52},
+    {name:'Music',  color:'#B8AAD4', data:[ 5, 5, 4, 5, 8,12,15,18,18,20], lx:0.74, ly:0.38},
+    {name:'Crypto', color:'#C8B870', data:[ 0, 0, 0, 2, 2, 3, 5,10,13,12], lx:0.86, ly:0.34},
+    {name:'Coding', color:'#90C4A4', data:[ 5, 5, 3, 3, 5, 5,10,14,20,28], lx:0.91, ly:0.22},
+    {name:'Family', color:'#6EC49A', data:[70,65,55,40,30,25,20,15,12,10], lx:0.25, ly:0.26},
+  ];
+  const cum = ages.map((_,i)=>{ let s=0; return cats.map(c=>{ s+=c.data[i]; return s; }); });
+
+  let hovCat = -1, hovX = -1;
+
+  function rrPath(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y);
+    ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r);
+    ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h);
+    ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r);
+    ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+  }
+
+  function smoothBand(ctx, topPts, botPts) {
+    ctx.beginPath();
+    ctx.moveTo(topPts[0][0], topPts[0][1]);
+    for (let i=1;i<n;i++) {
+      const p0=topPts[Math.max(0,i-2)],p1=topPts[i-1],p2=topPts[i],p3=topPts[Math.min(n-1,i+1)];
+      ctx.bezierCurveTo(p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6,
+                        p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6,p2[0],p2[1]);
+    }
+    const rev=[...botPts].reverse();
+    ctx.lineTo(rev[0][0],rev[0][1]);
+    for (let i=1;i<n;i++) {
+      const p0=rev[Math.max(0,i-2)],p1=rev[i-1],p2=rev[i],p3=rev[Math.min(n-1,i+1)];
+      ctx.bezierCurveTo(p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6,
+                        p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6,p2[0],p2[1]);
+    }
+    ctx.closePath();
+  }
+
+  function draw() {
+    const cssW = Math.max(wrap.offsetWidth || 480, 200);
+    const cssH = Math.round(cssW * 0.57);
+    if (canvas.width !== cssW*DPR || canvas.height !== cssH*DPR) {
+      canvas.width = cssW*DPR; canvas.height = cssH*DPR;
+      canvas.style.height = cssH + 'px';
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+
+    const W=cssW, H=cssH;
+    const pL=50, pR=12, pT=14, pB=36;
+    const cW=W-pL-pR, cH=H-pT-pB;
+    const xOf = i => pL + (ages[i]/23)*cW;
+    const yOf = v => pT + cH*(1-v/100);
+    const fBase = Math.max(9, Math.min(12, cssW/44));
+
+    // Background
+    const bg = ctx.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#E2F4EE'); bg.addColorStop(1,'#D5EDE5');
+    rrPath(ctx,0,0,W,H,12); ctx.fillStyle=bg; ctx.fill();
+
+    // Gridlines
+    [20,40,60,80].forEach(p=>{
+      ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=1; ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(pL,yOf(p)); ctx.lineTo(W-pR,yOf(p)); ctx.stroke();
+    });
+
+    // Bands
+    cats.forEach((cat,ci)=>{
+      const alpha = hovCat===-1 ? 0.88 : (hovCat===ci ? 1 : 0.38);
+      ctx.globalAlpha = alpha; ctx.fillStyle = cat.color;
+      smoothBand(ctx,
+        ages.map((_,i)=>[xOf(i),yOf(cum[i][ci])]),
+        ages.map((_,i)=>[xOf(i),yOf(ci===0?0:cum[i][ci-1])])
+      );
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    // Y-axis % labels
+    ctx.textAlign = 'right';
+    const ylf = Math.max(10, Math.min(13, cssW/40));
+    [20,40,60,80].forEach(p=>{
+      ctx.fillStyle='rgba(28,48,64,0.62)';
+      ctx.font = `500 ${ylf}px 'Plus Jakarta Sans',system-ui`;
+      ctx.fillText('— '+p+'%', pL-3, yOf(p)+ylf*0.38);
+    });
+
+    // X-axis
+    ctx.fillStyle='rgba(0,0,0,0.35)';
+    ctx.font = `${fBase}px 'Plus Jakarta Sans',system-ui`;
+    [0,5,10,15,20,23].forEach(a=>{
+      const x = pL+(a/23)*cW;
+      ctx.textAlign='center'; ctx.fillText(a, x, H-pB+fBase+4);
+      ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(x,H-pB); ctx.lineTo(x,H-pB+5); ctx.stroke();
+    });
+    ctx.fillStyle='rgba(0,0,0,0.4)';
+    ctx.font=`600 ${fBase}px 'Plus Jakarta Sans',system-ui`;
+    ctx.textAlign='center';
+    ctx.fillText('Age', pL+cW/2, H-3);
+
+    // Labels inside bands — manually positioned via cat.lx / cat.ly
+    const lf = Math.max(12, Math.min(18, cssW/28));
+    cats.forEach((cat,ci)=>{
+      if(cat.noLabel) return;
+      const lx = pL + cat.lx * cW;
+      const ly = pT + cat.ly * cH;
+      const alpha = hovCat===-1?0.9:(hovCat===ci?1:0.18);
+      ctx.globalAlpha=alpha;
+      ctx.fillStyle='rgba(22,44,60,0.78)';
+      ctx.font=`600 ${lf}px 'Plus Jakarta Sans',system-ui`;
+      ctx.textAlign='center';
+      ctx.fillText(cat.name, lx, ly+lf*0.37);
+      ctx.globalAlpha=1;
+    });
+
+    // Hover crosshair + tooltip
+    if (hovX>=pL && hovX<=W-pR) {
+      ctx.strokeStyle='rgba(0,0,0,0.25)'; ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(hovX,pT); ctx.lineTo(hovX,H-pB); ctx.stroke();
+      ctx.setLineDash([]);
+
+      if (hovCat>=0) {
+        const ageRaw=((hovX-pL)/cW)*23;
+        let idx=0;
+        while(idx<n-2 && ages[idx+1]<ageRaw) idx++;
+        const t=ages[idx+1]>ages[idx]?(ageRaw-ages[idx])/(ages[idx+1]-ages[idx]):0;
+        const i1=Math.min(idx,n-1), i2=Math.min(idx+1,n-1);
+        const topV=cum[i1][hovCat]*(1-t)+cum[i2][hovCat]*t;
+        const botV=hovCat===0?0:cum[i1][hovCat-1]*(1-t)+cum[i2][hovCat-1]*t;
+        const pct=Math.round(topV-botV);
+        const ttW=112, ttH=48, ttR=8;
+        const ttx=hovX>W*0.65?hovX-ttW-12:hovX+12;
+        const tty=pT+8;
+        rrPath(ctx,ttx,tty,ttW,ttH,ttR);
+        ctx.fillStyle='rgba(16,16,32,0.88)'; ctx.fill();
+        ctx.fillStyle=cats[hovCat].color;
+        ctx.font=`700 ${fBase+1}px 'Plus Jakarta Sans',system-ui`;
+        ctx.textAlign='left';
+        ctx.fillText(cats[hovCat].name, ttx+10, tty+18);
+        ctx.fillStyle='rgba(255,255,255,0.58)';
+        ctx.font=`${fBase-1}px 'Plus Jakarta Sans',system-ui`;
+        ctx.fillText('Age '+Math.round(ageRaw)+' · '+pct+'%', ttx+10, tty+34);
+      }
+    }
+  }
+
+  draw();
+  new ResizeObserver(draw).observe(wrap);
+
+  canvas.addEventListener('mousemove', e=>{
+    const rect=canvas.getBoundingClientRect();
+    const cssW=Math.max(wrap.offsetWidth||480,200);
+    const cssH=Math.round(cssW*0.57);
+    const pL=50,pR=12,pT=14,pB=36;
+    const cW=cssW-pL-pR, cH=cssH-pT-pB;
+    const yOf=v=>pT+cH*(1-v/100);
+    const mx=(e.clientX-rect.left)*(cssW/rect.width);
+    const my=(e.clientY-rect.top)*(cssH/rect.height);
+    hovX=mx;
+    if (mx>=pL && mx<=cssW-pR) {
+      const ageX=((mx-pL)/cW)*23;
+      let idx=0; while(idx<n-2 && ages[idx+1]<ageX) idx++;
+      const t=ages[idx+1]>ages[idx]?(ageX-ages[idx])/(ages[idx+1]-ages[idx]):0;
+      const i1=Math.min(idx,n-1),i2=Math.min(idx+1,n-1);
+      const cumX=cats.map((_,ci)=>cum[i1][ci]*(1-t)+cum[i2][ci]*t);
+      hovCat=-1;
+      for (let ci=cats.length-1;ci>=0;ci--) {
+        if (my>=yOf(cumX[ci]) && my<=yOf(ci===0?0:cumX[ci-1])) { hovCat=ci; break; }
+      }
+    } else { hovCat=-1; }
+    draw();
+  });
+  canvas.addEventListener('mouseleave',()=>{ hovCat=-1; hovX=-1; draw(); });
+}
+
+let mapBuilt = false;
+function buildLifeMap() {
+  if (mapBuilt) return;
+  mapBuilt = true;
+  const map = L.map('lifeMap', {
+    scrollWheelZoom: false,
+    zoomControl: true,
+    worldCopyJump: true,
+    maxBounds: [[-85, -180], [85, 180]],
+    maxBoundsViscosity: 1.0
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    attribution:'&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    subdomains:'abcd', maxZoom:19
+  }).addTo(map);
+
+  const icon = L.divIcon({
+    html:'<div style="width:14px;height:14px;border-radius:50%;background:#f97316;border:3px solid #fff;box-shadow:0 2px 10px rgba(249,115,22,.55)"></div>',
+    className:'', iconSize:[14,14], iconAnchor:[7,7]
+  });
+
+  const places=[
+    {lat:23.12,  lng:113.27,  name:'Guangzhou',      note:'Born & raised 🏠'},
+    {lat:20.05,  lng:110.34,  name:'Haikou, Hainan', note:'University years 🎓'},
+    {lat:-33.87, lng:151.21,  name:'Sydney',          note:'Current base 🇦🇺'},
+    {lat:13.76,  lng:100.50,  name:'Bangkok',         note:'Thailand 🇹🇭'},
+    {lat:35.68,  lng:139.65,  name:'Tokyo',           note:'Japan 🇯🇵'},
+    {lat:26.21,  lng:127.68,  name:'Okinawa',         note:'Japan 🇯🇵'},
+    {lat:3.14,   lng:101.69,  name:'Kuala Lumpur',    note:'Malaysia 🇲🇾'},
+    {lat:45.46,  lng:9.19,    name:'Milan',           note:'Italy 🇮🇹'},
+    {lat:47.38,  lng:8.54,    name:'Zurich',          note:'Switzerland 🇨🇭'},
+    {lat:34.05,  lng:-118.24, name:'Los Angeles',     note:'USA 🇺🇸'},
+  ];
+
+  places.forEach(p=>{
+    L.marker([p.lat,p.lng],{icon}).addTo(map)
+     .bindPopup(`<strong style="font-size:.85rem">${p.name}</strong><br><span style="font-size:.75rem;color:#666">${p.note}</span>`);
+  });
+
+  map.fitBounds(L.latLngBounds(places.map(p=>[p.lat,p.lng])),{padding:[50,50]});
+}
+
+buildTimeChart();
+
+// ── Radar Charts ──────────────────────────────────────────────────
+function buildRadarChart(wrapId, labels, values) {
+  const wrap = document.getElementById(wrapId);
+  if (!wrap) return;
+
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'display:block;width:100%;cursor:default';
+  wrap.appendChild(canvas);
+
+  const tip = document.createElement('div');
+  tip.style.cssText = 'position:absolute;display:none;background:#fff;border-radius:10px;padding:10px 14px;box-shadow:0 4px 20px rgba(0,0,0,.12);pointer-events:none;font-family:"Plus Jakarta Sans",system-ui;z-index:10;white-space:nowrap';
+  wrap.appendChild(tip);
+
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const N = labels.length;
+  const MAX = Math.ceil(Math.max(...values) / 50) * 50;
+  let hovIdx = -1;
+
+  const axAng = i => -Math.PI / 2 + (2 * Math.PI / N) * i;
+
+  function draw() {
+    const cssW = Math.max(wrap.offsetWidth || 300, 180);
+    const cssH = cssW;
+    if (canvas.width !== cssW * DPR || canvas.height !== cssH * DPR) {
+      canvas.width = cssW * DPR;
+      canvas.height = cssH * DPR;
+      canvas.style.height = cssH + 'px';
+    }
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    const cx = cssW / 2, cy = cssH / 2;
+    const R = Math.min(cssW, cssH) * 0.27;
+    const lR = R * 1.25;
+    const pt = (r, i) => [cx + r * Math.cos(axAng(i)), cy + r * Math.sin(axAng(i))];
+
+    // Concentric grid rings
+    [0.25, 0.5, 0.75, 1].forEach(f => {
+      ctx.beginPath();
+      ctx.arc(cx, cy, R * f, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,0,0,.09)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // Axis lines
+    for (let i = 0; i < N; i++) {
+      const [x, y] = pt(R, i);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = 'rgba(0,0,0,.09)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Hover dashed line
+    if (hovIdx >= 0) {
+      const [x, y] = pt(R, hovIdx);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(x, y);
+      ctx.strokeStyle = 'rgba(0,0,0,.28)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Data polygon
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const r = R * values[i] / MAX;
+      const [x, y] = pt(r, i);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(110,196,154,.22)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(110,196,154,.85)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Data dots
+    for (let i = 0; i < N; i++) {
+      const r = R * values[i] / MAX;
+      const [x, y] = pt(r, i);
+      ctx.beginPath();
+      ctx.arc(x, y, hovIdx === i ? 5.5 : 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#6EC49A';
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = hovIdx === i ? 2 : 1.5;
+      ctx.stroke();
+    }
+
+    // Axis labels (multi-line for labels containing spaces)
+    const fLab = Math.max(9, Math.min(13, cssW / 30));
+    const lineH = fLab * 1.3;
+    ctx.fillStyle = 'rgba(28,44,64,.82)';
+    ctx.font = `500 ${fLab}px 'Plus Jakarta Sans',system-ui`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (let i = 0; i < N; i++) {
+      const [x, y] = pt(lR, i);
+      const words = labels[i].split(' ');
+      if (words.length > 1) {
+        ctx.fillText(words[0], x, y - lineH / 2);
+        ctx.fillText(words.slice(1).join(' '), x, y + lineH / 2);
+      } else {
+        ctx.fillText(labels[i], x, y);
+      }
+    }
+  }
+
+  function updateTip() {
+    if (hovIdx < 0) { tip.style.display = 'none'; return; }
+    const cssW = wrap.offsetWidth;
+    const cssH = parseFloat(canvas.style.height) || cssW;
+    const cx = cssW / 2, cy = cssH / 2;
+    const R = Math.min(cssW, cssH) * 0.27;
+    const r = R * values[hovIdx] / MAX;
+    const px = cx + r * Math.cos(axAng(hovIdx));
+    const py = cy + r * Math.sin(axAng(hovIdx));
+
+    tip.innerHTML = `<div style="font-weight:700;font-size:.88rem;color:#1c2c40;margin-bottom:5px">${labels[hovIdx]}</div><div style="display:flex;align-items:center;gap:7px;font-size:.82rem"><span style="width:12px;height:12px;background:#6EC49A;border-radius:2px;flex-shrink:0;display:inline-block"></span><span style="color:#666">count</span><span style="font-weight:600;color:#1c2c40;margin-left:2px">${values[hovIdx]}</span></div>`;
+
+    let tx = px + 14, ty = py - 24;
+    const tw = 155;
+    if (tx + tw > cssW) tx = px - tw - 14;
+    if (ty < 0) ty = 4;
+    if (ty + 68 > cssH) ty = cssH - 72;
+    tip.style.left = tx + 'px';
+    tip.style.top = ty + 'px';
+    tip.style.display = 'block';
+  }
+
+  canvas.addEventListener('mousemove', e => {
+    const ox = e.offsetX, oy = e.offsetY;
+    const cssW = wrap.offsetWidth;
+    const cssH = parseFloat(canvas.style.height) || cssW;
+    const cx = cssW / 2, cy = cssH / 2;
+    const R = Math.min(cssW, cssH) * 0.27;
+    const d = Math.hypot(ox - cx, oy - cy);
+
+    if (d < 12 || d > R * 1.38) {
+      if (hovIdx !== -1) { hovIdx = -1; draw(); updateTip(); }
+      return;
+    }
+    const a = Math.atan2(oy - cy, ox - cx);
+    let best = 0, bestDiff = Infinity;
+    for (let i = 0; i < N; i++) {
+      let diff = Math.abs(a - axAng(i));
+      if (diff > Math.PI) diff = 2 * Math.PI - diff;
+      if (diff < bestDiff) { bestDiff = diff; best = i; }
+    }
+    if (hovIdx !== best) { hovIdx = best; draw(); updateTip(); }
+  });
+
+  canvas.addEventListener('mouseleave', () => {
+    hovIdx = -1;
+    tip.style.display = 'none';
+    draw();
+  });
+
+  const ro = new ResizeObserver(() => draw());
+  ro.observe(wrap);
+  draw();
+}
+
+buildRadarChart('movieRadarWrap',
+  ['Drama','Comedy','Animation','Fantasy','Action','Science Fiction','Romance'],
+  [280, 120, 132, 90, 150, 200, 280]);
+
+buildRadarChart('albumRadarWrap',
+  ['Rock','HipHop','Folk','Electronic','R&B','Jazz'],
+  [15, 280, 45, 90, 220, 35]);
+// ──────────────────────────────────────────────────────────────────
+
+const lifeObs = new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting){ buildLifeMap(); lifeObs.disconnect(); }
+},{threshold:0.05});
+lifeObs.observe(document.getElementById('life'));
+// ─────────────────────────────────────────────────────────────────
+
+// ── Info Popover (QQ / WeChat / Email) ───────────────────────────
+const pvData = {
+  qq:     { label: 'QQ',     val: '2394486092' },
+  wechat: { label: 'WeChat', val: 'Jalengreenniubi' },
+  email:  { label: 'Email',  val: 'jalensuggs77@gmail.com' },
+};
+
+const pvEl = document.createElement('div');
+pvEl.className = 'info-popover';
+pvEl.innerHTML = '<div class="pv-label"></div><div class="pv-val"></div><button class="pv-copy">Copy</button>';
+document.body.appendChild(pvEl);
+
+const pvLabel = pvEl.querySelector('.pv-label');
+const pvVal   = pvEl.querySelector('.pv-val');
+const pvCopy  = pvEl.querySelector('.pv-copy');
+
+let pvActive = null;
+
+pvCopy.addEventListener('click', e => {
+  e.stopPropagation();
+  navigator.clipboard.writeText(pvVal.textContent).then(() => {
+    pvCopy.textContent = 'Copied!';
+    setTimeout(() => { pvCopy.textContent = 'Copy'; }, 1600);
+  });
+});
+
+function showPv(trigger, key) {
+  if (pvActive === trigger) { hidePv(); return; }
+  pvActive = trigger;
+  const d = pvData[key];
+  pvLabel.textContent = d.label;
+  pvVal.textContent   = d.val;
+  pvCopy.textContent  = 'Copy';
+  pvEl.classList.add('pv-show');
+
+  const r  = trigger.getBoundingClientRect();
+  const pw = pvEl.offsetWidth || 190;
+  let left = r.left + r.width / 2 - pw / 2;
+  left = Math.max(10, Math.min(left, window.innerWidth - pw - 10));
+  pvEl.style.left = left + 'px';
+  pvEl.style.top  = (r.bottom + 10) + 'px';
+}
+
+function hidePv() { pvEl.classList.remove('pv-show'); pvActive = null; }
+
+document.querySelectorAll('[data-popover]').forEach(el => {
+  el.addEventListener('click', e => { e.stopPropagation(); showPv(el, el.dataset.popover); });
+});
+document.addEventListener('click', () => hidePv());
+// ─────────────────────────────────────────────────────────────────
+</script>
+</body>
+</html>
