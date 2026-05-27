@@ -1,8 +1,5 @@
 # macOS system files
 .DS_Store
 
-# Copyrighted audio — not for public distribution
-music/
-
 # Local tooling config
 .claude/
