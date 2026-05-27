@@ -1,7 +1,23 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { playlists, tracks as allTracks, artists } from '../data/tracks';
 import { CoverArt } from './LyricsPanel';
+
+/** 加载所有曲目的时长（preload metadata，不会真正下载 MP3 内容） */
+function useDurations() {
+  const [durations, setDurations] = useState({});
+  useEffect(() => {
+    allTracks.forEach(track => {
+      const audio = new Audio();
+      audio.preload = 'metadata';
+      audio.onloadedmetadata = () => {
+        setDurations(prev => ({ ...prev, [track.id]: audio.duration }));
+      };
+      audio.src = track.src; // 赋值 src 触发加载
+    });
+  }, []);
+  return durations;
+}
 
 function formatTime(s) {
   if (!s || isNaN(s)) return '—';
@@ -12,6 +28,7 @@ function formatTime(s) {
 
 export default function MainContent() {
   const { state, dispatch, currentTrack } = usePlayer();
+  const durations = useDurations();
 
   const filteredTracks = useMemo(() => {
     let list = allTracks;
@@ -171,7 +188,7 @@ export default function MainContent() {
                   </span>
                 </span>
 
-                <span className="col-dur">{formatTime(track._duration)}</span>
+                <span className="col-dur">{formatTime(durations[track.id])}</span>
               </div>
             );
           })}
