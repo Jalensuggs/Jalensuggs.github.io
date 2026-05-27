@@ -13,7 +13,7 @@ export default function LyricsPanel() {
 
   if (!state.showLyrics) return null;
 
-  const lyrics = currentTrack?.lyrics || [];
+  const lyrics = state.lyrics || [];
 
   return (
     <div className="lyrics-panel">

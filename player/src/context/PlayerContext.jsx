@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useRef, useEffect, useCallback } from 'react';
 import { tracks } from '../data/tracks';
+import { parseLRC } from '../utils/lrcParser';
 
 const PlayerContext = createContext(null);
 
@@ -17,6 +18,8 @@ const initialState = {
   searchQuery: '',
   showLyrics: false,
   currentLyricIndex: 0,
+  // 当前曲目的歌词（由 LRC 文件或 inline 数据填充）
+  lyrics: tracks[0].lyrics ?? [],
 };
 
 function reducer(state, action) {
@@ -50,6 +53,8 @@ function reducer(state, action) {
       return { ...state, showLyrics: !state.showLyrics };
     case 'SET_LYRIC_INDEX':
       return { ...state, currentLyricIndex: action.index };
+    case 'SET_LYRICS':
+      return { ...state, lyrics: action.lyrics, currentLyricIndex: 0 };
     default:
       return state;
   }
@@ -62,8 +67,12 @@ export function PlayerProvider({ children }) {
   const audioCtxRef = useRef(null);
   const sourceRef = useRef(null);
   const prevVolRef = useRef(0.8);
+  const lyricsRef  = useRef([]); // 始终保持最新歌词，避免 useEffect 依赖数组变化
 
   const currentTrack = state.tracks.find(t => t.id === state.currentTrackId);
+
+  // 同步 lyricsRef
+  lyricsRef.current = state.lyrics;
 
   // Init audio element once
   useEffect(() => {
@@ -73,13 +82,23 @@ export function PlayerProvider({ children }) {
     }
   }, []);
 
-  // Track change → load new src
+  // Track change → load new src + lyrics
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentTrack) return;
     audio.src = currentTrack.src;
     audio.load();
     if (state.isPlaying) audio.play().catch(() => {});
+
+    // 加载歌词：优先 LRC 文件，否则用 inline lyrics
+    if (currentTrack.lrcSrc) {
+      fetch(currentTrack.lrcSrc)
+        .then(r => r.text())
+        .then(text => dispatch({ type: 'SET_LYRICS', lyrics: parseLRC(text) }))
+        .catch(() => dispatch({ type: 'SET_LYRICS', lyrics: currentTrack.lyrics ?? [] }));
+    } else {
+      dispatch({ type: 'SET_LYRICS', lyrics: currentTrack.lyrics ?? [] });
+    }
   }, [state.currentTrackId]);
 
   // Play / pause
@@ -107,12 +126,12 @@ export function PlayerProvider({ children }) {
 
     const onTimeUpdate = () => {
       dispatch({ type: 'SET_PROGRESS', value: audio.currentTime });
-      // Update lyric index
-      const track = tracks.find(t => t.id === state.currentTrackId);
-      if (track?.lyrics) {
+      // 通过 ref 读取歌词，避免把 state.lyrics 加进依赖数组
+      const lyrics = lyricsRef.current;
+      if (lyrics?.length) {
         let idx = 0;
-        for (let i = 0; i < track.lyrics.length; i++) {
-          if (audio.currentTime >= track.lyrics[i].time) idx = i;
+        for (let i = 0; i < lyrics.length; i++) {
+          if (audio.currentTime >= lyrics[i].time) idx = i;
         }
         dispatch({ type: 'SET_LYRIC_INDEX', index: idx });
       }
