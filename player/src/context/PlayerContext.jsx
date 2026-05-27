@@ -217,13 +217,18 @@ export function PlayerProvider({ children }) {
 function getFilteredTracks(state) {
   let list = state.tracks;
   if (state.activePlaylist !== 'all') {
-    const genres = { lofi: 'Lo-fi', beats: 'Beats', chill: 'Chill', hiphop: 'Hip-hop' };
-    list = list.filter(t => t.genre === genres[state.activePlaylist]);
+    // genre playlists
+    if (state.activePlaylist === 'hiphop') list = list.filter(t => t.genre === 'Hip-hop');
+    else if (state.activePlaylist === 'rnb')   list = list.filter(t => t.genre === 'R&B');
+    // artist playlists
+    else list = list.filter(t => t.artist === state.activePlaylist);
   }
   if (state.searchQuery) {
     const q = state.searchQuery.toLowerCase();
     list = list.filter(t =>
-      t.title.toLowerCase().includes(q) || t.artist.toLowerCase().includes(q)
+      t.title.toLowerCase().includes(q) ||
+      t.artist.toLowerCase().includes(q) ||
+      t.genre.toLowerCase().includes(q)
     );
   }
   return list.length ? list : state.tracks;

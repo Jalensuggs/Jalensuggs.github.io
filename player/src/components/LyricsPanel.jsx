@@ -31,12 +31,10 @@ export default function LyricsPanel() {
       </div>
 
       <div className="lyrics-track-info">
-        <div className="lyrics-cover">
-          <CoverArt track={currentTrack} size={80} />
-        </div>
+        <CoverArt track={currentTrack} size={80} />
         <div>
           <p className="lyrics-song-title">{currentTrack?.title}</p>
-          <p className="lyrics-artist">{currentTrack?.artist}</p>
+          <p className="lyrics-artist">{currentTrack?.artist} · {currentTrack?.genre}</p>
         </div>
       </div>
 
@@ -59,7 +57,25 @@ export default function LyricsPanel() {
   );
 }
 
-function CoverArt({ track, size = 56 }) {
+// ── CoverArt: 有头像用头像，没有用彩色字母 ─────────────────
+export function CoverArt({ track, size = 56 }) {
+  if (track?.cover) {
+    return (
+      <div
+        className="cover-art"
+        style={{ width: size, height: size, background: '#222', flexShrink: 0 }}
+      >
+        <img
+          src={track.cover}
+          alt={track.artist}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          onError={e => { e.target.style.display = 'none'; }}
+        />
+      </div>
+    );
+  }
+
+  // 无封面 → 彩色字母占位
   const colors = ['#1db954', '#e91e63', '#ff9800', '#2196f3', '#9c27b0'];
   const color = colors[(track?.id ?? 0) % colors.length];
   const initials = track?.title?.slice(0, 2).toUpperCase() ?? '??';
@@ -67,11 +83,14 @@ function CoverArt({ track, size = 56 }) {
   return (
     <div
       className="cover-art"
-      style={{ width: size, height: size, background: `linear-gradient(135deg, ${color}44, ${color}22)`, border: `1px solid ${color}55` }}
+      style={{
+        width: size, height: size,
+        background: `linear-gradient(135deg, ${color}44, ${color}22)`,
+        border: `1px solid ${color}55`,
+        flexShrink: 0,
+      }}
     >
       <span style={{ color, fontSize: size * 0.3, fontWeight: 800 }}>{initials}</span>
     </div>
   );
 }
-
-export { CoverArt };

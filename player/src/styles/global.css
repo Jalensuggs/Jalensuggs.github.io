@@ -142,6 +142,40 @@ input { border: none; outline: none; font: inherit; }
 }
 .playlist-item.active .playlist-dot { background: var(--green); }
 
+/* Sidebar artist items */
+.artist-item { gap: 10px; padding: 6px 14px; }
+
+.artist-avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+}
+.artist-avatar-sm img { width: 100%; height: 100%; object-fit: cover; }
+.artist-avatar-sm span { font-size: .75rem; font-weight: 700; color: var(--text2); }
+
+.artist-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.artist-item-name {
+  font-size: .84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.artist-item-genre { font-size: .72rem; color: var(--text3); }
+.artist-item.active .artist-item-name { color: var(--green); }
+
 .sidebar-footer {
   padding: 16px 20px 0;
   margin-top: auto;
@@ -263,6 +297,76 @@ input { border: none; outline: none; font: inherit; }
   background: rgba(29,185,84,0.15);
   border-color: var(--green);
   color: var(--green);
+}
+
+/* ── Artists grid section ───────────────────────────── */
+.artists-section {
+  padding: 24px 32px 0;
+}
+.artists-section-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+}
+.artists-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 8px;
+}
+@media (max-width: 700px) {
+  .artists-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.artist-card {
+  background: var(--bg2);
+  border-radius: 10px;
+  padding: 16px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+  transition: background var(--transition), transform var(--transition), border-color var(--transition);
+  cursor: pointer;
+  text-align: center;
+}
+.artist-card:hover {
+  background: var(--bg3);
+  border-color: rgba(29,185,84,0.3);
+  transform: translateY(-2px);
+}
+.artist-card-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+.artist-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.artist-card-photo span {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--green);
+}
+.artist-card-name {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.artist-card-genre {
+  font-size: .72rem;
+  color: var(--text3);
+  margin-top: -4px;
 }
 
 /* Section header */
@@ -426,6 +530,15 @@ input { border: none; outline: none; font: inherit; }
   font-weight: 600;
   background: var(--bg3);
   color: var(--text2);
+}
+/* Hip-hop = 绿色；R&B = 紫色 */
+.genre-badge--hiphop {
+  background: rgba(29,185,84,0.15);
+  color: #1db954;
+}
+.genre-badge--rnb {
+  background: rgba(156,39,176,0.18);
+  color: #ce93d8;
 }
 
 /* Cover art */

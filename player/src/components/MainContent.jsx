@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { usePlayer } from '../context/PlayerContext';
-import { playlists, tracks as allTracks } from '../data/tracks';
+import { playlists, tracks as allTracks, artists } from '../data/tracks';
 import { CoverArt } from './LyricsPanel';
 
 function formatTime(s) {
@@ -16,8 +16,9 @@ export default function MainContent() {
   const filteredTracks = useMemo(() => {
     let list = allTracks;
     if (state.activePlaylist !== 'all') {
-      const genres = { lofi: 'Lo-fi', beats: 'Beats', chill: 'Chill', hiphop: 'Hip-hop' };
-      list = list.filter(t => t.genre === genres[state.activePlaylist]);
+      if (state.activePlaylist === 'hiphop') list = list.filter(t => t.genre === 'Hip-hop');
+      else if (state.activePlaylist === 'rnb') list = list.filter(t => t.genre === 'R&B');
+      else list = list.filter(t => t.artist === state.activePlaylist);
     }
     if (state.searchQuery) {
       const q = state.searchQuery.toLowerCase();
@@ -31,10 +32,11 @@ export default function MainContent() {
   }, [state.activePlaylist, state.searchQuery]);
 
   const playlistLabel = playlists.find(p => p.id === state.activePlaylist)?.name ?? 'All Tracks';
+  const showArtists = state.activePlaylist === 'all' && !state.searchQuery;
 
   return (
     <main className="main-content">
-      {/* Top bar */}
+      {/* ── 顶部搜索栏 ── */}
       <div className="topbar">
         <div className="search-wrap">
           <svg className="search-icon" viewBox="0 0 24 24" fill="currentColor">
@@ -53,21 +55,19 @@ export default function MainContent() {
         </div>
       </div>
 
-      {/* Featured banner */}
+      {/* ── Featured Banner ── */}
       <div className="featured-banner">
         <div className="featured-info">
           <span className="featured-tag">NOW PLAYING</span>
           <h1 className="featured-title">{currentTrack?.title}</h1>
-          <p className="featured-sub">{currentTrack?.artist} · {currentTrack?.album}</p>
+          <p className="featured-sub">{currentTrack?.artist} · {currentTrack?.genre}</p>
         </div>
-        <div className="featured-cover">
-          <CoverArt track={currentTrack} size={120} />
-        </div>
+        <CoverArt track={currentTrack} size={120} />
       </div>
 
-      {/* Genre chips */}
+      {/* ── 流派筛选 chips ── */}
       <div className="genre-chips">
-        {playlists.map(pl => (
+        {playlists.filter(p => p.type === 'genre').map(pl => (
           <button
             key={pl.id}
             className={`genre-chip ${state.activePlaylist === pl.id ? 'active' : ''}`}
@@ -78,17 +78,45 @@ export default function MainContent() {
         ))}
       </div>
 
-      {/* Section header */}
+      {/* ── 歌手卡片区（仅在 All Tracks 下显示） ── */}
+      {showArtists && (
+        <div className="artists-section">
+          <h2 className="artists-section-title">Artists</h2>
+          <div className="artists-grid">
+            {artists.map(artist => (
+              <button
+                key={artist.id}
+                className="artist-card"
+                onClick={() => dispatch({ type: 'SET_PLAYLIST', id: artist.id })}
+              >
+                <div className="artist-card-photo">
+                  {artist.photo
+                    ? <img src={artist.photo} alt={artist.name} />
+                    : <span>{artist.name.slice(0, 1)}</span>
+                  }
+                </div>
+                <p className="artist-card-name">{artist.name}</p>
+                <p className="artist-card-genre">{artist.genre}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── 曲目列表区块标题 ── */}
       <div className="section-header">
         <h2>{state.searchQuery ? `Results for "${state.searchQuery}"` : playlistLabel}</h2>
         <span className="track-count">{filteredTracks.length} tracks</span>
       </div>
 
-      {/* Track table */}
+      {/* ── 曲目表格 ── */}
       {filteredTracks.length === 0 ? (
         <div className="empty-state">
           <p>No tracks found</p>
-          <button onClick={() => { dispatch({ type: 'SET_SEARCH', value: '' }); dispatch({ type: 'SET_PLAYLIST', id: 'all' }); }}>
+          <button onClick={() => {
+            dispatch({ type: 'SET_SEARCH', value: '' });
+            dispatch({ type: 'SET_PLAYLIST', id: 'all' });
+          }}>
             Clear filters
           </button>
         </div>
@@ -112,25 +140,21 @@ export default function MainContent() {
               <div
                 key={track.id}
                 className={`track-row ${isActive ? 'active' : ''}`}
-                onDoubleClick={() => dispatch({ type: 'PLAY_TRACK', id: track.id })}
                 onClick={() => dispatch({ type: 'PLAY_TRACK', id: track.id })}
               >
+                {/* # / playing bars */}
                 <span className="col-num">
                   {isActive && state.isPlaying ? (
-                    <span className="playing-bars">
-                      <span/><span/><span/>
-                    </span>
+                    <span className="playing-bars"><span/><span/><span/></span>
                   ) : (
                     <span className="track-num">{idx + 1}</span>
                   )}
                   <span className="track-play-icon">
-                    {isActive && state.isPlaying
-                      ? <PauseIcon />
-                      : <PlayIcon />
-                    }
+                    {isActive && state.isPlaying ? <PauseIcon /> : <PlayIcon />}
                   </span>
                 </span>
 
+                {/* 封面 + 歌名 + 歌手 */}
                 <span className="col-title">
                   <CoverArt track={track} size={40} />
                   <span className="track-name-wrap">
@@ -140,9 +164,13 @@ export default function MainContent() {
                 </span>
 
                 <span className="col-album">{track.album}</span>
+
                 <span className="col-genre">
-                  <span className="genre-badge">{track.genre}</span>
+                  <span className={`genre-badge genre-badge--${track.genre === 'Hip-hop' ? 'hiphop' : 'rnb'}`}>
+                    {track.genre}
+                  </span>
                 </span>
+
                 <span className="col-dur">{formatTime(track._duration)}</span>
               </div>
             );
@@ -154,16 +182,8 @@ export default function MainContent() {
 }
 
 function PlayIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-      <path d="M8 5v14l11-7z"/>
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>;
 }
 function PauseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
-    </svg>
-  );
+  return <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>;
 }
