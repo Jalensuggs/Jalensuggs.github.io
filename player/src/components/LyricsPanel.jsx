@@ -1,9 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { usePlayer } from '../context/PlayerContext';
+import { useCallback } from 'react';
 
 export default function LyricsPanel() {
-  const { state, currentTrack, dispatch } = usePlayer();
+  const { state, currentTrack, dispatch, seek } = usePlayer();
   const activeRef = useRef(null);
+
+  const handleLineClick = useCallback((time) => {
+    seek(time);
+  }, [seek]);
 
   useEffect(() => {
     if (activeRef.current) {
@@ -47,6 +52,8 @@ export default function LyricsPanel() {
               key={i}
               ref={i === state.currentLyricIndex ? activeRef : null}
               className={`lyrics-line ${i === state.currentLyricIndex ? 'active' : ''} ${i < state.currentLyricIndex ? 'past' : ''}`}
+              onClick={() => handleLineClick(line.time)}
+              title="点击跳转到此处"
             >
               {line.text}
             </p>

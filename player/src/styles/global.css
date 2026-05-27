@@ -609,7 +609,14 @@ input { border: none; outline: none; font: inherit; }
   line-height: 1.4;
   color: var(--text3);
   transition: color 0.4s ease, font-size 0.3s ease, transform 0.3s ease;
-  cursor: default;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 0 -8px;
+}
+.lyrics-line:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.06);
 }
 .lyrics-line.active {
   color: var(--text);
