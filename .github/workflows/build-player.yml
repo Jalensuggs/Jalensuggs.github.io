@@ -1,0 +1,48 @@
+name: Auto Build Player
+
+# 只在 player 源码有改动时触发
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'player/src/**'
+      - 'player/public/**'
+      - 'player/index.html'
+      - 'player/vite.config.js'
+      - 'player/package*.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # 跳过自动提交触发的循环构建
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: player/package-lock.json
+
+      - name: Install dependencies
+        run: cd player && npm ci
+
+      - name: Build
+        run: cd player && npm run build
+
+      - name: Commit updated dist/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f player/dist/
+          git diff --staged --quiet || (
+            git commit -m "chore: auto-build player dist [skip ci]" &&
+            git push
+          )
