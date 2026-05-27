@@ -1,10 +1,13 @@
 // 解析 LRC 文件内容 → [{ time: 秒数, text: 歌词 }]
 // 过滤掉作词/作曲/编曲/监制/Written by/Prod by 等元数据行
 
-const META_RE = /^(作词|作曲|编曲|制作人|主唱|混音|监制|出品|词|曲|Written\s*by|Produced?\s*by|Prod\.?\s*by|Mix(?:ed)?\s*by|Master(?:ed)?\s*by)\s*[：:.\s]/i;
+const META_RE = /^(作词|作曲|编曲|混缩|制作人|主唱|混音|监制|出品|词|曲|Written\s*by|Produced?\s*by|Prod\.?\s*by|Mix(?:ed)?\s*by|Master(?:ed)?\s*by)\s*[：:.\s]/i;
 
 // 纯曲名/艺术家标题行，例如 "艾志恒 - Butterflies" 或 "吴亦凡 - November Rain"
 const TITLE_RE = /^[^[\]]+\s+-\s+[^[\]]+$/;
+
+// 出现在开头（< 5 秒）的纯曲名行，例如 "Butterflies" "November Rain"
+const SONG_TITLE_EARLY_MAX = 5; // 秒
 
 const TIME_RE = /\[(\d{1,2}):(\d{2})\.(\d{2,3})\](.*)/;
 
@@ -29,6 +32,8 @@ export function parseLRC(rawText) {
     if (META_RE.test(text)) continue;
     // 跳过纯标题行（"曲名 - 艺术家"）
     if (TITLE_RE.test(text)) continue;
+    // 跳过 5 秒内的单词/短语标题行（如 "Butterflies"、"DAY1"）
+    if (time < SONG_TITLE_EARLY_MAX && /^[\w\s]+$/.test(text) && text.length < 30) continue;
 
     result.push({ time, text });
   }
