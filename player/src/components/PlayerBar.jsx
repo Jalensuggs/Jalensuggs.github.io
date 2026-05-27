@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { usePlayer } from '../context/PlayerContext';
 import { CoverArt } from './LyricsPanel';
-import Visualizer from './Visualizer';
 
 function formatTime(s) {
   if (!s || isNaN(s)) return '0:00';
@@ -123,8 +122,6 @@ export default function PlayerBar() {
           <span className="time-label">{formatTime(state.duration)}</span>
         </div>
 
-        {/* Visualizer */}
-        <Visualizer />
       </div>
 
       {/* Right: volume */}

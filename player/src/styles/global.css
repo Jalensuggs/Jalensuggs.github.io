@@ -17,7 +17,7 @@
   --border:    rgba(255,255,255,0.06);
   --radius:    8px;
   --sidebar-w: 220px;
-  --bar-h:     150px;
+  --bar-h:     90px;
   --transition: 0.18s ease;
 }
 
@@ -637,7 +637,7 @@ input { border: none; outline: none; font: inherit; }
   display: grid;
   grid-template-columns: 280px 1fr 200px;
   align-items: center;
-  padding: 8px 20px;
+  padding: 0 20px;
   gap: 16px;
   z-index: 100;
 }
