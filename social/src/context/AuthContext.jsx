@@ -15,11 +15,16 @@ export function AuthProvider({ children }) {
         setUser(session.user)
         await fetchProfile(session.user.id)
       } else {
-        // Auto sign in anonymously — no login form needed
-        const { data } = await supabase.auth.signInAnonymously()
-        if (data?.user) {
-          setUser(data.user)
-          await fetchProfile(data.user.id)
+        // Retry anonymous sign-in up to 3 times — first attempt may hit cold start
+        let authed = null
+        for (let i = 0; i < 3 && !authed; i++) {
+          const { data } = await supabase.auth.signInAnonymously()
+          authed = data?.user ?? null
+          if (!authed && i < 2) await new Promise(r => setTimeout(r, 2000))
+        }
+        if (authed) {
+          setUser(authed)
+          await fetchProfile(authed.id)
         }
       }
       // Warm up DB connection so first post insert is fast

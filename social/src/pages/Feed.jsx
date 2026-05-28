@@ -15,42 +15,43 @@ export default function Feed() {
 
   const fetchPosts = useCallback(async () => {
     setLoading(true)
+    try {
+      if (tab === 'following') {
+        const { data: follows } = await supabase
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', user?.id)
+        const ids = (follows || []).map(f => f.following_id)
 
-    if (tab === 'following') {
-      const { data: follows } = await supabase
-        .from('follows')
-        .select('following_id')
-        .eq('follower_id', user?.id)
-      const ids = (follows || []).map(f => f.following_id)
+        if (ids.length === 0) {
+          setPosts([])
+          return
+        }
 
-      if (ids.length === 0) {
-        setPosts([])
-        setLoading(false)
-        return
+        const { data } = await supabase
+          .from('posts')
+          .select(POST_SELECT)
+          .in('user_id', ids)
+          .order('created_at', { ascending: false })
+          .limit(50)
+        setPosts(data || [])
+      } else {
+        const { data } = await supabase
+          .from('posts')
+          .select(POST_SELECT)
+          .order('created_at', { ascending: false })
+          .limit(100)
+        const ranked = (data || [])
+          .map(p => ({ ...p, likeCount: p.likes?.length ?? 0 }))
+          .sort((a, b) => b.likeCount - a.likeCount || new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 50)
+        setPosts(ranked)
       }
-
-      const { data } = await supabase
-        .from('posts')
-        .select(POST_SELECT)
-        .in('user_id', ids)
-        .order('created_at', { ascending: false })
-        .limit(50)
-      setPosts(data || [])
-    } else {
-      // For You — rank by most likes
-      const { data } = await supabase
-        .from('posts')
-        .select(POST_SELECT)
-        .order('created_at', { ascending: false })
-        .limit(100)
-      const ranked = (data || [])
-        .map(p => ({ ...p, likeCount: p.likes?.length ?? 0 }))
-        .sort((a, b) => b.likeCount - a.likeCount || new Date(b.created_at) - new Date(a.created_at))
-        .slice(0, 50)
-      setPosts(ranked)
+    } catch {
+      setPosts([])
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }, [tab, user?.id])
 
   useEffect(() => { fetchPosts() }, [fetchPosts])
