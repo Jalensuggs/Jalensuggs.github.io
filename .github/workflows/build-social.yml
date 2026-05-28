@@ -1,0 +1,49 @@
+name: Auto Build Social
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'social/src/**'
+      - 'social/public/**'
+      - 'social/index.html'
+      - 'social/vite.config.js'
+      - 'social/package*.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: social/package-lock.json
+
+      - name: Install dependencies
+        run: cd social && npm ci
+
+      - name: Build
+        run: cd social && npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: Commit updated dist/
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f social/dist/
+          git diff --staged --quiet || (
+            git commit -m "chore: auto-build social dist [skip ci]" &&
+            git push
+          )
