@@ -77,26 +77,41 @@ create policy "follows_select" on follows for select using (true);
 create policy "follows_insert" on follows for insert with check (auth.uid() = follower_id);
 create policy "follows_delete" on follows for delete using (auth.uid() = follower_id);
 
--- ── IMPORTANT: Enable anonymous sign-ins ──────────────────────────────────────
--- Supabase dashboard → Authentication → Settings → "Enable anonymous sign-ins" → ON
-
--- ── Auto-create profile on signup (works for both anonymous & email users) ────
+-- ── Auto-create profile on signup (email OTP + Google OAuth) ─────────────────
 create or replace function public.handle_new_user()
 returns trigger as $$
 declare
-  _username text;
-  _display  text;
+  base_username text;
+  final_username text;
+  counter int := 0;
 begin
-  -- For anonymous users email is null, so fall back to a short random id
-  _username := coalesce(
-    new.raw_user_meta_data->>'username',
-    case when new.email is not null then split_part(new.email, '@', 1) else null end,
-    'user_' || substr(replace(new.id::text, '-', ''), 1, 8)
-  );
-  _display := coalesce(new.raw_user_meta_data->>'display_name', _username);
+  -- derive base username from email prefix or fallback random
+  if new.email is not null and new.email != '' then
+    base_username := lower(regexp_replace(split_part(new.email, '@', 1), '[^a-z0-9_]', '_', 'g'));
+    base_username := left(base_username, 20);
+  else
+    base_username := 'user_' || substr(md5(random()::text), 1, 8);
+  end if;
 
-  insert into public.profiles (id, username, display_name)
-  values (new.id, _username, _display)
+  -- ensure uniqueness
+  final_username := base_username;
+  while exists(select 1 from public.profiles where username = final_username) loop
+    counter := counter + 1;
+    final_username := base_username || '_' || counter::text;
+  end loop;
+
+  insert into public.profiles (id, username, display_name, avatar_url)
+  values (
+    new.id,
+    final_username,
+    coalesce(
+      new.raw_user_meta_data->>'full_name',
+      new.raw_user_meta_data->>'name',
+      split_part(coalesce(new.email, ''), '@', 1),
+      'User'
+    ),
+    new.raw_user_meta_data->>'avatar_url'
+  )
   on conflict (id) do nothing;
   return new;
 end;
