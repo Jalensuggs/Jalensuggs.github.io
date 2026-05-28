@@ -1,13 +1,12 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Layout from './components/Layout'
-import Auth from './pages/Auth'
 import Feed from './pages/Feed'
 import Profile from './pages/Profile'
 import PostDetail from './pages/PostDetail'
 
 function AppRoutes() {
-  const { user, loading } = useAuth()
+  const { loading } = useAuth()
 
   if (loading) {
     return (
@@ -16,8 +15,6 @@ function AppRoutes() {
       </div>
     )
   }
-
-  if (!user) return <Auth />
 
   return (
     <Layout>

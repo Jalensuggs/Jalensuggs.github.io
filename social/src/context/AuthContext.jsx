@@ -9,16 +9,28 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) fetchProfile(session.user.id)
-      else setLoading(false)
-    })
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        setUser(session.user)
+        await fetchProfile(session.user.id)
+      } else {
+        // Auto sign in anonymously — no login form needed
+        const { data } = await supabase.auth.signInAnonymously()
+        if (data?.user) {
+          setUser(data.user)
+          await fetchProfile(data.user.id)
+        }
+      }
+      setLoading(false)
+    }
+
+    init()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
       if (session?.user) fetchProfile(session.user.id)
-      else { setProfile(null); setLoading(false) }
+      else setProfile(null)
     })
 
     return () => subscription.unsubscribe()
@@ -27,14 +39,21 @@ export function AuthProvider({ children }) {
   async function fetchProfile(userId) {
     const { data } = await supabase.from('profiles').select('*').eq('id', userId).single()
     setProfile(data)
-    setLoading(false)
   }
 
-  const signOut = () => supabase.auth.signOut()
-  const refreshProfile = () => user && fetchProfile(user.id)
+  async function updateDisplayName(name) {
+    if (!user || !name.trim()) return
+    const { data } = await supabase
+      .from('profiles')
+      .update({ display_name: name.trim() })
+      .eq('id', user.id)
+      .select()
+      .single()
+    if (data) setProfile(data)
+  }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, updateDisplayName, refreshProfile: () => fetchProfile(user?.id) }}>
       {children}
     </AuthContext.Provider>
   )

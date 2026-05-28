@@ -77,16 +77,27 @@ create policy "follows_select" on follows for select using (true);
 create policy "follows_insert" on follows for insert with check (auth.uid() = follower_id);
 create policy "follows_delete" on follows for delete using (auth.uid() = follower_id);
 
--- ── Auto-create profile on signup ─────────────────────────────────────────────
+-- ── IMPORTANT: Enable anonymous sign-ins ──────────────────────────────────────
+-- Supabase dashboard → Authentication → Settings → "Enable anonymous sign-ins" → ON
+
+-- ── Auto-create profile on signup (works for both anonymous & email users) ────
 create or replace function public.handle_new_user()
 returns trigger as $$
+declare
+  _username text;
+  _display  text;
 begin
-  insert into public.profiles (id, username, display_name)
-  values (
-    new.id,
-    coalesce(new.raw_user_meta_data->>'username', split_part(new.email, '@', 1)),
-    coalesce(new.raw_user_meta_data->>'display_name', split_part(new.email, '@', 1))
+  -- For anonymous users email is null, so fall back to a short random id
+  _username := coalesce(
+    new.raw_user_meta_data->>'username',
+    case when new.email is not null then split_part(new.email, '@', 1) else null end,
+    'user_' || substr(replace(new.id::text, '-', ''), 1, 8)
   );
+  _display := coalesce(new.raw_user_meta_data->>'display_name', _username);
+
+  insert into public.profiles (id, username, display_name)
+  values (new.id, _username, _display)
+  on conflict (id) do nothing;
   return new;
 end;
 $$ language plpgsql security definer;

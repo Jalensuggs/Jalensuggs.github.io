@@ -1,14 +1,33 @@
+import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Sidebar() {
-  const { profile, signOut } = useAuth()
+  const { profile, updateDisplayName } = useAuth()
   const { pathname } = useLocation()
+  const [editing, setEditing] = useState(false)
+  const [nameInput, setNameInput] = useState('')
+  const inputRef = useRef()
 
   const nav = [
     { to: '/', icon: <HomeIcon />, label: 'Home' },
-    { to: `/profile/${profile?.username}`, icon: <UserIcon />, label: 'Profile' },
+    ...(profile ? [{ to: `/profile/${profile.username}`, icon: <UserIcon />, label: 'Profile' }] : []),
   ]
+
+  function startEdit() {
+    setNameInput(profile?.display_name || '')
+    setEditing(true)
+  }
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus()
+  }, [editing])
+
+  async function saveName(e) {
+    e.preventDefault()
+    await updateDisplayName(nameInput)
+    setEditing(false)
+  }
 
   return (
     <nav className="sidebar">
@@ -35,12 +54,31 @@ export default function Sidebar() {
               : <span>{profile.display_name?.[0]?.toUpperCase()}</span>
             }
           </div>
+
           <div className="sidebar-profile-info">
-            <span className="display-name">{profile.display_name}</span>
-            <span className="handle">@{profile.username}</span>
+            {editing ? (
+              <form onSubmit={saveName} className="name-edit-form">
+                <input
+                  ref={inputRef}
+                  className="name-edit-input"
+                  value={nameInput}
+                  onChange={e => setNameInput(e.target.value)}
+                  onBlur={saveName}
+                  maxLength={32}
+                />
+              </form>
+            ) : (
+              <>
+                <span className="display-name">{profile.display_name}</span>
+                <span className="handle">@{profile.username}</span>
+              </>
+            )}
           </div>
-          <button className="signout-btn" onClick={signOut} title="Sign out">
-            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+
+          <button className="edit-name-btn" onClick={startEdit} title="Change display name">
+            <svg viewBox="0 0 24 24" width="16" height="16">
+              <path d="M3 17.46v3.04h3.04L17.19 9.35l-3.04-3.04L3 17.46zm14.37-8.31c.3-.3.3-.77 0-1.07l-1.97-1.97c-.3-.3-.77-.3-1.07 0l-1.54 1.54 3.04 3.04 1.54-1.54z"/>
+            </svg>
           </button>
         </div>
       )}

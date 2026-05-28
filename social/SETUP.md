@@ -42,7 +42,8 @@ This writes to `dist/` — the main blog already links to `social/dist/index.htm
 ---
 
 ## Features
-- Sign up / Sign in
+- **No login required** — anyone can post instantly
+- Auto anonymous identity per browser (editable display name)
 - Post text, images, and videos (up to 4 files)
 - Like and comment on posts
 - Follow / unfollow users
