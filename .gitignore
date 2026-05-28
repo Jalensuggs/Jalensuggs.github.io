@@ -3,3 +3,9 @@
 
 # Local tooling config
 .claude/
+
+# Dependencies
+social/node_modules/
+
+# Env files
+social/.env

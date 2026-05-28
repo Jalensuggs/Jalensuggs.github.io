@@ -172,6 +172,10 @@ nav{
 section:not(#home){padding:80px 8%}
 .s-label{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:8px}
 .s-title{font-size:clamp(1.6rem,3vw,2.1rem);font-weight:800;margin-bottom:36px;color:var(--text)}
+.section-title-row{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.section-title-row .s-title{margin-bottom:0}
+.see-more-link{font-size:.82rem;font-weight:700;color:var(--accent);white-space:nowrap;text-decoration:none;border:1.5px solid rgba(249,115,22,.35);border-radius:20px;padding:5px 14px;transition:background .18s,border-color .18s}
+.see-more-link:hover{background:rgba(249,115,22,.08);border-color:var(--accent)}
 .s-title span{color:var(--accent)}
 .divider{width:40px;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;margin-bottom:24px}
 
@@ -464,6 +468,7 @@ body.loaded .scroll-hint{opacity:1}
     <li><a href="#blog">Blog</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="player/dist/index.html">MusicPlayer</a></li>
+    <li><a href="social/dist/index.html">Social</a></li>
   </ul>
   <div class="nav-social">
     <a href="https://github.com/" title="GitHub">
@@ -684,7 +689,10 @@ body.loaded .scroll-hint{opacity:1}
 
 <section id="blog">
   <div class="s-label">Thoughts &amp; Writings</div>
-  <h2 class="s-title">Blog <span>Posts</span></h2>
+  <div class="section-title-row">
+    <h2 class="s-title">Blog <span>Posts</span></h2>
+    <a href="social/dist/index.html" class="see-more-link">See more →</a>
+  </div>
   <div class="divider"></div>
   <div class="blog-grid">
     <div class="blog-card"><div class="blog-date">MAY 2025</div><div class="blog-title">What I Learned Building a CLI App in Python</div><div class="blog-excerpt">OOP design patterns, validation, and the lessons from building CLIUniApp from scratch.</div><span class="blog-tag">Software Engineering</span><span class="blog-read">Read more →</span></div>
