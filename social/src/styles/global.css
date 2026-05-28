@@ -108,6 +108,7 @@ input { font: inherit; }
   color: var(--text);
 }
 .sidebar-logo:hover { background: var(--hover); }
+.sidebar-logo-img { width: 40px; height: 40px; object-fit: contain; border-radius: 50%; }
 
 .sidebar-nav {
   display: flex;

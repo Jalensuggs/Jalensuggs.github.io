@@ -14,7 +14,9 @@ export default function Sidebar() {
 
   return (
     <nav className="sidebar">
-      <Link to="/" className="sidebar-logo">𝕏</Link>
+      <Link to="/" className="sidebar-logo">
+        <img src="./logo.png" alt="logo" className="sidebar-logo-img" />
+      </Link>
 
       <div className="sidebar-nav">
         {nav.map(({ to, icon, label }) => (
