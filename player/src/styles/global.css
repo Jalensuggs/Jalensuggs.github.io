@@ -70,6 +70,12 @@ input { border: none; outline: none; font: inherit; }
   font-weight: 800;
   letter-spacing: -0.3px;
   color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.sidebar-logo:hover {
+  opacity: 0.75;
 }
 
 .sidebar-nav {
