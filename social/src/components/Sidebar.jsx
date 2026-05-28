@@ -27,6 +27,10 @@ export default function Sidebar() {
             <span>{label}</span>
           </Link>
         ))}
+        <a href="/" className="nav-item" title="Back to Blog">
+          <BlogIcon />
+          <span>Blog</span>
+        </a>
       </div>
 
       {user && profile ? (
@@ -92,6 +96,14 @@ function SignOutIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
       <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+    </svg>
+  )
+}
+
+function BlogIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="24" height="24">
+      <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm-1 14H7v-2h4v2zm6-4H7v-2h10v2zm0-4H7V6h10v2z"/>
     </svg>
   )
 }
