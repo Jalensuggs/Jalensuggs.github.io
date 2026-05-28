@@ -93,6 +93,11 @@ export function AuthProvider({ children }) {
     await supabase.from('posts').delete().eq('user_id', user.id)
     await supabase.from('follows').delete().eq('follower_id', user.id)
     await supabase.from('follows').delete().eq('following_id', user.id)
+    // Delete all files in the user's storage folder
+    const { data: files } = await supabase.storage.from('media').list(user.id)
+    if (files?.length) {
+      await supabase.storage.from('media').remove(files.map(f => `${user.id}/${f.name}`))
+    }
     await supabase.from('profiles')
       .update({ display_name: 'Deleted User', avatar_url: null })
       .eq('id', user.id)

@@ -31,6 +31,12 @@ export default function PostCard({ post, onUpdate }) {
   async function deletePost() {
     if (post.user_id !== user?.id) return
     if (!confirm('Delete this post?')) return
+    if (post.media_urls?.length) {
+      const paths = post.media_urls
+        .map(url => { const m = url.indexOf('/object/public/media/'); return m !== -1 ? url.slice(m + 21).split('?')[0] : null })
+        .filter(Boolean)
+      if (paths.length) await supabase.storage.from('media').remove(paths)
+    }
     await supabase.from('posts').delete().eq('id', post.id)
     onUpdate?.()
   }
