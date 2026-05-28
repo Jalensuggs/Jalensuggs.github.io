@@ -41,7 +41,7 @@ export default function ComposeBox({ onPost }) {
   }
 
   async function handlePost() {
-    if (!content.trim() && !files.length) return
+    if (!user || (!content.trim() && !files.length)) return
     setSubmitting(true)
 
     const postContent = content.trim()
@@ -94,7 +94,9 @@ export default function ComposeBox({ onPost }) {
   }
 
   const remaining = MAX_CHARS - content.length
-  const canPost = !!user && (content.trim() || files.length) && remaining >= 0 && !submitting
+  const hasContent = !!(content.trim() || files.length)
+  const connecting = !user && hasContent
+  const canPost = !!user && hasContent && remaining >= 0 && !submitting
 
   return (
     <div className="compose-box">
@@ -150,7 +152,7 @@ export default function ComposeBox({ onPost }) {
               </span>
             )}
             <button className="post-btn" onClick={handlePost} disabled={!canPost}>
-              Post
+              {connecting ? 'Connecting…' : 'Post'}
             </button>
           </div>
         </div>
