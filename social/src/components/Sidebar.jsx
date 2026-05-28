@@ -1,13 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 
 export default function Sidebar() {
-  const { profile, updateDisplayName } = useAuth()
+  const { profile, user, signOut, openAuthModal } = useAuth()
   const { pathname } = useLocation()
-  const [editing, setEditing] = useState(false)
-  const [nameInput, setNameInput] = useState('')
-  const inputRef = useRef()
 
   const nav = [
     { to: '/', icon: <HomeIcon />, label: 'Home' },
@@ -15,21 +11,6 @@ export default function Sidebar() {
     ...(profile ? [{ to: `/profile/${profile.username}`, icon: <UserIcon />, label: 'Profile' }] : []),
     { to: '/settings', icon: <SettingsIcon />, label: 'Settings' },
   ]
-
-  function startEdit() {
-    setNameInput(profile?.display_name || '')
-    setEditing(true)
-  }
-
-  useEffect(() => {
-    if (editing) inputRef.current?.focus()
-  }, [editing])
-
-  async function saveName(e) {
-    e.preventDefault()
-    await updateDisplayName(nameInput)
-    setEditing(false)
-  }
 
   return (
     <nav className="sidebar">
@@ -48,7 +29,7 @@ export default function Sidebar() {
         ))}
       </div>
 
-      {profile && (
+      {user && profile ? (
         <div className="sidebar-profile">
           <div className="avatar sm">
             {profile.avatar_url
@@ -56,34 +37,21 @@ export default function Sidebar() {
               : <span>{profile.display_name?.[0]?.toUpperCase()}</span>
             }
           </div>
-
           <div className="sidebar-profile-info">
-            {editing ? (
-              <form onSubmit={saveName} className="name-edit-form">
-                <input
-                  ref={inputRef}
-                  className="name-edit-input"
-                  value={nameInput}
-                  onChange={e => setNameInput(e.target.value)}
-                  onBlur={saveName}
-                  maxLength={32}
-                />
-              </form>
-            ) : (
-              <>
-                <span className="display-name">{profile.display_name}</span>
-                <span className="handle">@{profile.username}</span>
-              </>
-            )}
+            <span className="display-name">{profile.display_name}</span>
+            <span className="handle">@{profile.username}</span>
           </div>
-
-          <button className="edit-name-btn" onClick={startEdit} title="Change display name">
-            <svg viewBox="0 0 24 24" width="16" height="16">
-              <path d="M3 17.46v3.04h3.04L17.19 9.35l-3.04-3.04L3 17.46zm14.37-8.31c.3-.3.3-.77 0-1.07l-1.97-1.97c-.3-.3-.77-.3-1.07 0l-1.54 1.54 3.04 3.04 1.54-1.54z"/>
-            </svg>
+          <button className="signout-btn" onClick={signOut} title="Sign out">
+            <SignOutIcon />
           </button>
         </div>
-      )}
+      ) : !user ? (
+        <div className="sidebar-login">
+          <button className="login-btn" onClick={openAuthModal}>
+            Log in / Sign up
+          </button>
+        </div>
+      ) : null}
     </nav>
   )
 }
@@ -116,6 +84,14 @@ function SettingsIcon() {
   return (
     <svg viewBox="0 0 24 24" width="24" height="24">
       <path d="M10.54 1.75h2.92l1.57 2.36c.11.17.32.25.53.21l2.53-.59 2.17 2.17-.58 2.53c-.05.21.04.42.21.53l2.36 1.57v2.92l-2.36 1.57c-.17.11-.26.32-.21.53l.58 2.53-2.17 2.17-2.53-.58c-.21-.05-.42.04-.53.21l-1.57 2.36h-2.92l-1.57-2.36c-.11-.17-.32-.26-.53-.21l-2.53.58-2.17-2.17.59-2.53c.04-.21-.04-.42-.21-.53L1.75 13.46v-2.92l2.36-1.57c.17-.11.25-.32.21-.53l-.59-2.53 2.17-2.17 2.53.59c.21.04.42-.04.53-.21l1.57-2.36zm1.46 6.5a3.75 3.75 0 100 7.5 3.75 3.75 0 000-7.5z"/>
+    </svg>
+  )
+}
+
+function SignOutIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
     </svg>
   )
 }

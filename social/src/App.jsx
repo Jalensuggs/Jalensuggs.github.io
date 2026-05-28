@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import Layout from './components/Layout'
+import AuthModal from './components/AuthModal'
 import Feed from './pages/Feed'
 import Profile from './pages/Profile'
 import PostDetail from './pages/PostDetail'
@@ -20,6 +21,7 @@ function AppRoutes() {
 
   return (
     <Layout>
+      <AuthModal />
       <Routes>
         <Route path="/" element={<Feed />} />
         <Route path="/explore" element={<Explore />} />

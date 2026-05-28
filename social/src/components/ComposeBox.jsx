@@ -5,12 +5,24 @@ import { useAuth } from '../context/AuthContext'
 const MAX_CHARS = 280
 
 export default function ComposeBox({ onPost }) {
-  const { user, profile } = useAuth()
+  const { user, profile, openAuthModal } = useAuth()
   const [content, setContent] = useState('')
   const [files, setFiles] = useState([])
   const [previews, setPreviews] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const fileRef = useRef()
+
+  if (!user) {
+    return (
+      <div className="compose-guest">
+        <div className="compose-guest-text">
+          <strong>Join the conversation</strong>
+          <span>Sign in to post, like, and reply.</span>
+        </div>
+        <button className="post-btn" onClick={openAuthModal}>Sign in</button>
+      </div>
+    )
+  }
 
   function handleFiles(e) {
     const selected = Array.from(e.target.files).slice(0, 4)
@@ -51,7 +63,6 @@ export default function ComposeBox({ onPost }) {
     const filesToUpload = [...files]
     const localPreviews = [...previews]
 
-    // Build optimistic post — shown immediately before DB confirms
     const optimisticPost = {
       id: `opt_${Date.now()}`,
       user_id: user.id,
@@ -70,7 +81,6 @@ export default function ComposeBox({ onPost }) {
       _optimistic: true,
     }
 
-    // Clear compose immediately so user can keep writing
     setContent('')
     previews.forEach(p => URL.revokeObjectURL(p))
     setFiles([])
@@ -79,7 +89,6 @@ export default function ComposeBox({ onPost }) {
 
     onPost?.(optimisticPost)
 
-    // Upload media + DB insert in the background
     try {
       const mediaUrls = await uploadFiles(filesToUpload)
       await supabase.from('posts').insert({
@@ -89,14 +98,12 @@ export default function ComposeBox({ onPost }) {
         media_type: mediaType,
       })
     } finally {
-      onPost?.() // replace optimistic with real post from DB
+      onPost?.()
     }
   }
 
   const remaining = MAX_CHARS - content.length
-  const hasContent = !!(content.trim() || files.length)
-  const connecting = !user && hasContent
-  const canPost = !!user && hasContent && remaining >= 0 && !submitting
+  const canPost = !!(content.trim() || files.length) && remaining >= 0 && !submitting
 
   return (
     <div className="compose-box">
@@ -152,7 +159,7 @@ export default function ComposeBox({ onPost }) {
               </span>
             )}
             <button className="post-btn" onClick={handlePost} disabled={!canPost}>
-              {connecting ? 'Connecting…' : 'Post'}
+              Post
             </button>
           </div>
         </div>
