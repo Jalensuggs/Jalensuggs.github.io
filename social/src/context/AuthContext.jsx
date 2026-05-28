@@ -22,6 +22,8 @@ export function AuthProvider({ children }) {
           await fetchProfile(data.user.id)
         }
       }
+      // Warm up DB connection so first post insert is fast
+      supabase.from('posts').select('id').limit(1).then(() => {})
       setLoading(false)
     }
 

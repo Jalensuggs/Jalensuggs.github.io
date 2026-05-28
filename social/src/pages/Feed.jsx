@@ -55,6 +55,15 @@ export default function Feed() {
 
   useEffect(() => { fetchPosts() }, [fetchPosts])
 
+  function handleNewPost(optimisticPost) {
+    if (optimisticPost) {
+      // Show immediately; filter out any stale optimistic posts first
+      setPosts(prev => [optimisticPost, ...prev.filter(p => !p._optimistic)])
+    } else {
+      fetchPosts()
+    }
+  }
+
   return (
     <div className="feed">
       <div className="feed-header feed-header-tabs">
@@ -72,7 +81,7 @@ export default function Feed() {
         </button>
       </div>
 
-      <ComposeBox onPost={fetchPosts} />
+      <ComposeBox onPost={handleNewPost} />
       <div className="divider" />
 
       {loading ? (

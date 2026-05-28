@@ -9,7 +9,7 @@ export default function ComposeBox({ onPost }) {
   const [content, setContent] = useState('')
   const [files, setFiles] = useState([])
   const [previews, setPreviews] = useState([])
-  const [posting, setPosting] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
   const fileRef = useRef()
 
   function handleFiles(e) {
@@ -25,10 +25,10 @@ export default function ComposeBox({ onPost }) {
     setPreviews(p => p.filter((_, idx) => idx !== i))
   }
 
-  async function uploadMedia() {
-    if (!files.length) return []
+  async function uploadFiles(filesToUpload) {
+    if (!filesToUpload.length) return []
     const urls = []
-    for (const file of files) {
+    for (const file of filesToUpload) {
       const ext = file.name.split('.').pop()
       const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
       const { error } = await supabase.storage.from('media').upload(path, file)
@@ -42,30 +42,59 @@ export default function ComposeBox({ onPost }) {
 
   async function handlePost() {
     if (!content.trim() && !files.length) return
-    setPosting(true)
+    setSubmitting(true)
 
-    const mediaUrls = await uploadMedia()
+    const postContent = content.trim()
     const mediaType = files.length
       ? files[0].type.startsWith('video') ? 'video' : 'image'
       : null
+    const filesToUpload = [...files]
+    const localPreviews = [...previews]
 
-    await supabase.from('posts').insert({
+    // Build optimistic post — shown immediately before DB confirms
+    const optimisticPost = {
+      id: `opt_${Date.now()}`,
       user_id: user.id,
-      content: content.trim(),
-      media_urls: mediaUrls,
-      media_type: mediaType
-    })
+      content: postContent,
+      media_urls: localPreviews,
+      media_type: mediaType,
+      created_at: new Date().toISOString(),
+      profiles: {
+        id: user.id,
+        username: profile?.username,
+        display_name: profile?.display_name,
+        avatar_url: profile?.avatar_url,
+      },
+      likes: [],
+      comments: [],
+      _optimistic: true,
+    }
 
+    // Clear compose immediately so user can keep writing
     setContent('')
     previews.forEach(p => URL.revokeObjectURL(p))
     setFiles([])
     setPreviews([])
-    setPosting(false)
-    onPost?.()
+    setSubmitting(false)
+
+    onPost?.(optimisticPost)
+
+    // Upload media + DB insert in the background
+    try {
+      const mediaUrls = await uploadFiles(filesToUpload)
+      await supabase.from('posts').insert({
+        user_id: user.id,
+        content: postContent,
+        media_urls: mediaUrls,
+        media_type: mediaType,
+      })
+    } finally {
+      onPost?.() // replace optimistic with real post from DB
+    }
   }
 
   const remaining = MAX_CHARS - content.length
-  const canPost = (content.trim() || files.length) && remaining >= 0 && !posting
+  const canPost = !!user && (content.trim() || files.length) && remaining >= 0 && !submitting
 
   return (
     <div className="compose-box">
@@ -121,7 +150,7 @@ export default function ComposeBox({ onPost }) {
               </span>
             )}
             <button className="post-btn" onClick={handlePost} disabled={!canPost}>
-              {posting ? 'Posting…' : 'Post'}
+              Post
             </button>
           </div>
         </div>

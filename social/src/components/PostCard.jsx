@@ -50,7 +50,7 @@ export default function PostCard({ post, onUpdate }) {
             <span className="handle">@{username}</span>
           </Link>
           <span className="post-time">· {formatTime(post.created_at)}</span>
-          {post.user_id === user?.id && (
+          {post.user_id === user?.id && !post._optimistic && (
             <button className="delete-btn" onClick={deletePost} title="Delete post">
               <svg viewBox="0 0 24 24" width="16" height="16"><path d="M16 6V4.5C16 3.12 14.88 2 13.5 2h-3C9.12 2 8 3.12 8 4.5V6H3v2h1.06l.81 11.21C4.98 20.78 6.28 22 7.86 22h8.28c1.58 0 2.88-1.22 3-2.79L19.94 8H21V6h-5zm-6-1.5c0-.28.22-.5.5-.5h3c.28 0 .5.22.5.5V6h-4V4.5zm7.13 15.17c-.04.52-.47.83-.99.83H7.86c-.52 0-.95-.31-.99-.83L6.07 8h11.86l-.8 11.67z"/></svg>
             </button>
@@ -80,7 +80,7 @@ export default function PostCard({ post, onUpdate }) {
           <button
             className={`action-btn like-action${isLiked ? ' liked' : ''}`}
             onClick={toggleLike}
-            disabled={!user}
+            disabled={!user || !!post._optimistic}
           >
             {isLiked ? (
               <svg viewBox="0 0 24 24"><path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"/></svg>
