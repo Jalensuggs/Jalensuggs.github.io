@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { StrictMode } from 'react' // v2
 import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
