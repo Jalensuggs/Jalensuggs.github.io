@@ -29,7 +29,7 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       {/* Logo — 点击返回博客主页 */}
-      <a href="../index.html" className="sidebar-logo" title="返回博客主页">
+      <a href="../../index.html" className="sidebar-logo" title="返回博客主页">
         <svg viewBox="0 0 24 24" fill="var(--green)" width="32" height="32">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
         </svg>
@@ -94,7 +94,7 @@ export default function Sidebar() {
 
       {/* 返回博客 */}
       <div className="sidebar-footer">
-        <a href="../index.html" className="back-link">
+        <a href="../../index.html" className="back-link">
           <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
             <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
           </svg>
