@@ -4,6 +4,7 @@
 export const artists = [
   { id: 'KW',  name: 'KW',  genre: 'Hip-hop', photo: 'images/singers/Kw.jpeg',  bio: 'Hip-hop producer & rapper' },
   { id: 'AS',  name: 'AS',  genre: 'Hip-hop', photo: 'images/singers/As.jpeg',  bio: 'Hip-hop artist & songwriter' },
+  { id: 'Dra', name: 'Dra', genre: 'Hip-hop', photo: 'images/singers/Dra.jpg',  bio: 'Hip-hop artist & lyricist' },
   { id: 'LGZ', name: 'LGZ', genre: 'R&B',     photo: 'images/singers/LGZ.jpeg', bio: 'R&B singer & composer' },
   { id: 'GT',  name: 'GT',  genre: 'R&B',     photo: 'images/singers/Gt.jpeg',  bio: 'R&B vocalist & producer' },
 ];
@@ -131,6 +132,41 @@ export const tracks = [
     lyrics: [],
   },
 
+  // ── Dra · Hip-hop ─────────────────────────────────────────
+  {
+    id: 13,
+    title: '2 Hard 4 The Radio',
+    artist: 'Dra',
+    album: 'Dra Originals',
+    genre: 'Hip-hop',
+    src: 'music/Dra/2 Hard 4 The Radio.mp3',
+    cover: 'images/singers/Dra.jpg',
+    lrcSrc: 'lyrics/2 Hard 4 The Radio.lrc',
+    lyrics: [],
+  },
+  {
+    id: 14,
+    title: "B's On The Table",
+    artist: 'Dra',
+    album: 'Dra Originals',
+    genre: 'Hip-hop',
+    src: "music/Dra/B's On The Table.mp3",
+    cover: 'images/singers/Dra.jpg',
+    lrcSrc: "lyrics/B's On The Table.lrc",
+    lyrics: [],
+  },
+  {
+    id: 15,
+    title: 'Make Them Cry',
+    artist: 'Dra',
+    album: 'Dra Originals',
+    genre: 'Hip-hop',
+    src: 'music/Dra/Make Them Cry.mp3',
+    cover: 'images/singers/Dra.jpg',
+    lrcSrc: 'lyrics/Make Them Cry.lrc',
+    lyrics: [],
+  },
+
   // ── GT · R&B ──────────────────────────────────────────────
   {
     id: 10,
@@ -176,6 +212,7 @@ export const playlists = [
   { id: 'rnb',    name: 'R&B',        type: 'genre',  value: 'R&B' },
   { id: 'KW',     name: 'KW',         type: 'artist', value: 'KW' },
   { id: 'AS',     name: 'AS',         type: 'artist', value: 'AS' },
+  { id: 'Dra',    name: 'Dra',        type: 'artist', value: 'Dra' },
   { id: 'LGZ',    name: 'LGZ',        type: 'artist', value: 'LGZ' },
   { id: 'GT',     name: 'GT',         type: 'artist', value: 'GT' },
 ];
