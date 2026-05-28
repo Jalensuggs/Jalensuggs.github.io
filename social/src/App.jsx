@@ -4,6 +4,8 @@ import Layout from './components/Layout'
 import Feed from './pages/Feed'
 import Profile from './pages/Profile'
 import PostDetail from './pages/PostDetail'
+import Explore from './pages/Explore'
+import Settings from './pages/Settings'
 
 function AppRoutes() {
   const { loading } = useAuth()
@@ -20,6 +22,8 @@ function AppRoutes() {
     <Layout>
       <Routes>
         <Route path="/" element={<Feed />} />
+        <Route path="/explore" element={<Explore />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/profile/:username" element={<Profile />} />
         <Route path="/post/:id" element={<PostDetail />} />
         <Route path="*" element={<Navigate to="/" replace />} />
