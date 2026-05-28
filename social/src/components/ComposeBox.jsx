@@ -58,7 +58,9 @@ export default function ComposeBox({ onPost }) {
 
     const postContent = content.trim()
     const mediaType = files.length
-      ? files[0].type.startsWith('video') ? 'video' : 'image'
+      ? files[0].type.startsWith('video') ? 'video'
+        : files[0].type.startsWith('audio') ? 'audio'
+        : 'image'
       : null
     const filesToUpload = [...files]
     const localPreviews = [...previews]
@@ -129,6 +131,8 @@ export default function ComposeBox({ onPost }) {
               <div key={i} className="preview-wrap">
                 {files[i]?.type.startsWith('video')
                   ? <video src={src} className="preview-media" />
+                  : files[i]?.type.startsWith('audio')
+                  ? <audio src={src} controls className="preview-audio" />
                   : <img src={src} className="preview-media" alt="" />
                 }
                 <button className="remove-preview" onClick={() => removeFile(i)}>✕</button>
@@ -139,13 +143,13 @@ export default function ComposeBox({ onPost }) {
 
         <div className="compose-toolbar">
           <div className="compose-tools">
-            <button className="tool-btn" onClick={() => fileRef.current?.click()} title="Add image or video">
-              <svg viewBox="0 0 24 24" width="20" height="20"><path d="M3 5.5C3 4.119 4.119 3 5.5 3h13C19.881 3 21 4.119 21 5.5v13c0 1.381-1.119 2.5-2.5 2.5h-13C4.119 21 3 19.881 3 18.5v-13zM5.5 5c-.276 0-.5.224-.5.5v9.086l3-3 3 3 1-1 3 3H18.5c.276 0 .5-.224.5-.5v-13c0-.276-.224-.5-.5-.5h-13zM12 10.5a2 2 0 110-4 2 2 0 010 4z"/></svg>
+            <button className="tool-btn" onClick={() => fileRef.current?.click()} title="Add image, GIF, video or audio">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
             </button>
             <input
               ref={fileRef}
               type="file"
-              accept="image/*,video/*"
+              accept="image/*,video/*,audio/*,.gif,.mp3"
               multiple
               style={{ display: 'none' }}
               onChange={handleFiles}

@@ -64,6 +64,8 @@ export default function PostCard({ post, onUpdate }) {
             {post.media_urls.slice(0, 4).map((url, i) =>
               post.media_type === 'video' ? (
                 <video key={i} src={url} controls className="media-item" />
+              ) : post.media_type === 'audio' ? (
+                <audio key={i} src={url} controls className="media-audio" />
               ) : (
                 <img key={i} src={url} alt="" className="media-item" />
               )

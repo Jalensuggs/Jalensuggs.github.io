@@ -326,14 +326,23 @@ input { font: inherit; }
 
 .preview-wrap {
   position: relative;
-  aspect-ratio: 16/9;
   overflow: hidden;
   background: var(--bg3);
 }
+.compose-previews.count-1 .preview-wrap { max-height: 360px; }
+.compose-previews:not(.count-1) .preview-wrap { aspect-ratio: 16/9; }
 .preview-media {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  max-height: 360px;
+  display: block;
+}
+.compose-previews:not(.count-1) .preview-media { object-fit: cover; }
+.preview-audio {
+  width: 100%;
+  padding: 12px;
+  display: block;
 }
 .remove-preview {
   position: absolute;
@@ -486,7 +495,8 @@ input { font: inherit; }
   background: var(--bg3);
   display: block;
 }
-.post-media.count-1 .media-item { height: auto; max-height: 400px; }
+.post-media.count-1 .media-item { height: auto; max-height: 500px; object-fit: contain; background: var(--bg2); }
+.media-audio { width: 100%; padding: 8px 0; display: block; }
 
 /* ============================================================
    POST ACTIONS
