@@ -1,0 +1,404 @@
+#tape-game {
+  position: relative;
+  overflow: hidden;
+  padding: 88px clamp(18px, 3vw, 48px) 36px !important;
+  background: #d3d3d1;
+  color: #111;
+}
+
+.tape-game-heading {
+  width: min(1500px, 100%);
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 36px;
+}
+
+.tape-game-kicker {
+  margin-bottom: 9px;
+  color: #555;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.tape-game-heading h2 {
+  font-size: clamp(2.5rem, 5.2vw, 5.6rem);
+  font-weight: 500;
+  letter-spacing: -0.065em;
+  line-height: 0.92;
+}
+
+.tape-game-heading h2 span {
+  font-weight: 900;
+}
+
+.tape-game-heading p {
+  max-width: 430px;
+  margin-bottom: 3px;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: clamp(0.8rem, 1.1vw, 0.94rem);
+  line-height: 1.65;
+}
+
+.tape-game-shell {
+  position: relative;
+  width: min(1500px, 100%);
+  height: clamp(620px, 82vh, 900px);
+  min-height: 620px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background:
+    radial-gradient(circle at 50% 44%, rgba(255, 255, 255, 0.52), transparent 38%),
+    linear-gradient(135deg, #d8d8d6, #c9c9c7);
+  box-shadow:
+    0 26px 70px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  isolation: isolate;
+}
+
+.tape-game-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.018) 1px, transparent 1px),
+    linear-gradient(rgba(0, 0, 0, 0.018) 1px, transparent 1px),
+    radial-gradient(circle at center, transparent 55%, rgba(0, 0, 0, 0.08));
+  background-size: 72px 72px, 72px 72px, auto;
+}
+
+.tape-game-shell::after {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  right: 14%;
+  bottom: 35px;
+  left: 14%;
+  height: 3px;
+  background: #111;
+  pointer-events: none;
+}
+
+.tape-game-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  outline: none;
+  cursor: crosshair;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.tape-game-stage.is-orbiting {
+  cursor: grab;
+}
+
+.tape-game-stage.is-orbiting:active {
+  cursor: grabbing;
+}
+
+.tape-game-stage:focus-visible {
+  box-shadow: inset 0 0 0 2px #111;
+}
+
+.tape-game-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tape-game-status,
+.tape-game-stats,
+.tape-game-controls,
+.tape-game-hint,
+.tape-game-corner {
+  position: absolute;
+  z-index: 5;
+}
+
+.tape-game-status {
+  top: 20px;
+  left: 22px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(0, 0, 0, 0.72);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.tape-game-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f97316;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.14);
+}
+
+.tape-game-shell.is-drawing .tape-game-dot {
+  animation: tapePulse 0.8s ease-in-out infinite alternate;
+}
+
+.tape-game-stats {
+  top: 20px;
+  right: 22px;
+  min-width: 122px;
+  color: rgba(0, 0, 0, 0.75);
+  font: 700 0.58rem/1.4 "Plus Jakarta Sans", system-ui, sans-serif;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
+
+.tape-game-stats div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.tape-game-stats span {
+  color: rgba(0, 0, 0, 0.46);
+}
+
+.tape-game-stats strong {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.tape-game-hint {
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  transform: translate(-50%, -50%);
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tape-game-shell.has-drawn .tape-game-hint,
+.tape-game-shell.is-orbit .tape-game-hint {
+  opacity: 0;
+  transform: translate(-50%, -44%);
+}
+
+.tape-game-mouse {
+  position: relative;
+  width: 24px;
+  height: 36px;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 14px;
+}
+
+.tape-game-mouse::after {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 3px;
+  height: 7px;
+  border-radius: 3px;
+  background: #111;
+  transform: translateX(-50%);
+  animation: tapeScroll 1.5s ease-in-out infinite;
+}
+
+.tape-game-controls {
+  right: 20px;
+  bottom: 72px;
+  display: flex;
+  gap: 8px;
+}
+
+.tape-game-button {
+  min-height: 39px;
+  padding: 0 15px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 999px;
+  background: rgba(226, 226, 223, 0.8);
+  color: #111;
+  font: 800 0.64rem/1 "Plus Jakarta Sans", system-ui, sans-serif;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.tape-game-button:hover {
+  background: #111;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.tape-game-button:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 3px;
+}
+
+.tape-game-button:disabled {
+  opacity: 0.34;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.tape-game-button[aria-pressed="true"] {
+  background: #111;
+  color: #fff;
+}
+
+.tape-game-button-primary {
+  border-color: #f97316;
+  background: #f97316;
+  color: #fff;
+}
+
+.tape-game-button-primary:hover {
+  border-color: #111;
+}
+
+.tape-game-corner {
+  bottom: 12px;
+  color: #0b0b0b;
+  font-size: clamp(1.55rem, 3.4vw, 3.2rem);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.tape-game-corner-left {
+  left: 20px;
+}
+
+.tape-game-corner-right {
+  right: 20px;
+}
+
+.tape-game-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@keyframes tapePulse {
+  to {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 7px rgba(249, 115, 22, 0.08);
+  }
+}
+
+@keyframes tapeScroll {
+  0%, 100% {
+    opacity: 0.35;
+    transform: translate(-50%, 0);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, 8px);
+  }
+}
+
+@media (max-width: 720px) {
+  #tape-game {
+    padding: 64px 12px 20px !important;
+  }
+
+  .tape-game-heading {
+    margin-bottom: 22px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .tape-game-heading p {
+    max-width: 350px;
+  }
+
+  .tape-game-shell {
+    height: 72svh;
+    min-height: 540px;
+  }
+
+  .tape-game-shell::before {
+    background-size: 45px 45px, 45px 45px, auto;
+  }
+
+  .tape-game-shell::after {
+    right: 22%;
+    bottom: 26px;
+    left: 22%;
+    height: 2px;
+  }
+
+  .tape-game-status {
+    top: 15px;
+    left: 15px;
+  }
+
+  .tape-game-stats {
+    top: 15px;
+    right: 15px;
+    min-width: 104px;
+  }
+
+  .tape-game-stats div {
+    gap: 12px;
+  }
+
+  .tape-game-controls {
+    right: 12px;
+    bottom: 58px;
+    left: 12px;
+    justify-content: flex-end;
+  }
+
+  .tape-game-button {
+    min-height: 38px;
+    padding: 0 12px;
+  }
+
+  .tape-game-corner {
+    bottom: 12px;
+    font-size: 1.15rem;
+  }
+
+  .tape-game-corner-left {
+    left: 12px;
+  }
+
+  .tape-game-corner-right {
+    right: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tape-game-dot,
+  .tape-game-mouse::after {
+    animation: none !important;
+  }
+
+  .tape-game-hint,
+  .tape-game-button {
+    transition-duration: 0.01ms !important;
+  }
+}

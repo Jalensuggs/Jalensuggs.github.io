@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700;1,800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="tape-game.css"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -470,6 +471,7 @@ body.loaded .scroll-hint{opacity:1}
     <li><a href="#life">Life</a></li>
     <li><a href="#blog">Blog</a></li>
     <li><a href="#contact">Contact</a></li>
+    <li><a href="#tape-game">Roll</a></li>
     <li><a href="player/dist/index.html">MusicPlayer</a></li>
     <li><a href="social/dist/index.html">Social</a></li>
   </ul>
@@ -731,6 +733,53 @@ body.loaded .scroll-hint{opacity:1}
       <svg viewBox="0 0 24 24" width="18" height="18" style="fill:#333;flex-shrink:0"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
       jalensuggs77@gmail.com
     </button>
+  </div>
+</section>
+
+<section id="tape-game" aria-labelledby="tape-game-title">
+  <div class="tape-game-heading">
+    <div>
+      <div class="tape-game-kicker">Myles Space · Interactive Archive</div>
+      <h2 id="tape-game-title">Photo Strip <span>Roll.</span></h2>
+    </div>
+    <p>Move your cursor to steer the roll. Click to pause, or press Tab to look back at every frame.</p>
+  </div>
+
+  <div class="tape-game-shell" id="tapeGameShell">
+    <div
+      class="tape-game-stage"
+      id="tapeGameStage"
+      tabindex="0"
+      role="application"
+      aria-label="Interactive 3D tape roll. Move the pointer to steer and click to pause."
+    ></div>
+    <div class="tape-game-status" aria-live="polite">
+      <span class="tape-game-dot"></span>
+      <span id="tapeGameStatus">Ready to roll</span>
+    </div>
+    <div class="tape-game-stats" aria-label="Tape game statistics">
+      <div><span>Points</span><strong id="tapePointCount">000000</strong></div>
+      <div><span>FPS</span><strong id="tapeFps">000</strong></div>
+      <div><span>Orbit</span><strong id="tapeOrbitStatus">Off</strong></div>
+      <div><span>Rewind</span><strong>[Space]</strong></div>
+    </div>
+    <div class="tape-game-hint" aria-hidden="true">
+      <span class="tape-game-mouse"></span>
+      <span>Move to steer · click to pause</span>
+    </div>
+    <div class="tape-game-controls">
+      <button class="tape-game-button" id="tapeOrbit" type="button" aria-pressed="false">
+        Orbit: Off
+      </button>
+      <button class="tape-game-button" id="tapeRewind" type="button">
+        <span aria-hidden="true">↶</span> Rewind
+      </button>
+      <button class="tape-game-button tape-game-button-primary" id="tapeReset" type="button">
+        Reset
+      </button>
+    </div>
+    <div class="tape-game-corner tape-game-corner-left">DESIGN</div>
+    <div class="tape-game-corner tape-game-corner-right">CODE</div>
   </div>
 </section>
 
@@ -1695,5 +1744,6 @@ document.querySelectorAll('[data-popover]').forEach(el => {
 document.addEventListener('click', () => hidePv());
 // ─────────────────────────────────────────────────────────────────
 </script>
+<script type="module" src="tape-game.js"></script>
 </body>
 </html>
