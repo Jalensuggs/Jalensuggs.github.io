@@ -155,6 +155,50 @@ nav{
   box-shadow:0 4px 28px rgba(249,115,22,.4);
   overflow:hidden;
 }
+/* 暗黑猫猫头像 → 作品集链接 */
+.avatar-link{
+  position:relative;display:block;
+  width:140px;height:140px;border-radius:50%;
+  cursor:pointer;text-decoration:none;-webkit-tap-highlight-color:transparent;
+  transition:transform .35s cubic-bezier(.2,.8,.3,1.2);
+}
+.avatar-link .avatar-circle{
+  transition:box-shadow .35s ease,filter .35s ease;
+}
+.avatar-link .avatar-tip{
+  position:absolute;left:50%;top:calc(100% + 12px);
+  transform:translate(-50%,6px);
+  background:rgba(17,17,17,.88);color:#fff;
+  font-size:.68rem;font-weight:700;letter-spacing:.06em;
+  padding:5px 11px;border-radius:999px;white-space:nowrap;
+  opacity:0;pointer-events:none;
+  transition:opacity .28s ease,transform .28s ease;
+}
+.avatar-link:focus-visible{outline:none;transform:scale(1.12)}
+.avatar-link:focus-visible .avatar-circle{
+  box-shadow:0 10px 34px rgba(249,115,22,.55),0 0 0 4px rgba(249,115,22,.35);
+}
+.avatar-link:focus-visible .avatar-tip{opacity:1;transform:translate(-50%,0)}
+@media(hover:hover){
+  .avatar-link:hover{transform:scale(1.12)}
+  .avatar-link:hover .avatar-circle{
+    box-shadow:0 10px 34px rgba(249,115,22,.55),0 0 0 4px rgba(249,115,22,.35);
+    filter:saturate(1.12) brightness(1.06);
+  }
+  .avatar-link:hover .avatar-tip{opacity:1;transform:translate(-50%,0)}
+  .avatar-link:active{transform:scale(1.04)}
+  /* 悬浮时暂停公转、并置于卡片之上，方便点击 */
+  .floater:has(.avatar-link:hover),
+  .floater:has(.avatar-link:hover) .floater-inner{animation-play-state:paused}
+  .floater:has(.avatar-link:hover){z-index:30!important}
+}
+.floater:has(.avatar-link:focus-visible),
+.floater:has(.avatar-link:focus-visible) .floater-inner{animation-play-state:paused}
+.floater:has(.avatar-link:focus-visible){z-index:30!important}
+@media(prefers-reduced-motion:reduce){
+  .avatar-link{transition:none}
+  .avatar-link:hover,.avatar-link:focus-visible{transform:none}
+}
 .icon-bubble{
   width:58px;height:58px;border-radius:50%;
   background:#fff;display:flex;align-items:center;justify-content:center;
@@ -535,9 +579,12 @@ body.loaded .scroll-hint{opacity:1}
 
     <div class="floater" style="--dur:30s;--del:0s;--r:282px;--fi:.5s;z-index:5">
       <div class="floater-inner" style="--r:282px">
-        <div class="avatar-circle" style="background:none;padding:0">
-          <img src="images/头像.png" alt="Myles" style="width:100%;height:100%;object-fit:cover;display:block">
-        </div>
+        <a class="avatar-link" href="https://web-jalen77.vercel.app/" target="_blank" rel="noopener noreferrer" aria-label="Open my portfolio site">
+          <div class="avatar-circle" style="background:none;padding:0">
+            <img src="images/头像.png" alt="Myles" style="width:100%;height:100%;object-fit:cover;display:block">
+          </div>
+          <span class="avatar-tip">Portfolio ↗</span>
+        </a>
       </div>
     </div>
     <div class="floater" style="--dur:30s;--del:-7.5s;--r:282px;--fi:.7s">
